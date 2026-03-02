@@ -82,7 +82,10 @@ const marketingLinks: NavLink[] = [
   { href: "/dashboard/community", label: "Community", icon: UsersIcon },
 ];
 const paymentsLinks: NavLink[] = [{ href: "/dashboard/wallet", label: "Wallet", icon: WalletIcon }];
-const systemLinks: NavLink[] = [{ href: "/dashboard/settings", label: "Settings", icon: SettingsIcon }];
+const systemLinks: NavLink[] = [
+  { href: "/dashboard/settings", label: "Settings", icon: SettingsIcon },
+  { href: "/dashboard/subscription", label: "Subscription", icon: SettingsIcon },
+];
 
 // ── Component ────────────────────────────────────────────────────────────────
 

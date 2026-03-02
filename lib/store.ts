@@ -265,6 +265,29 @@ export function isVendorActive(userId: string) {
   return !!(sub && sub.expiresAt > Date.now());
 }
 
+// ── Organiser Subscription ────────────────────────────────────────────────────
+export type OrganiserPlan = "1m" | "3m" | "6m" | "12m";
+export type OrganiserSubscription = { plan: OrganiserPlan; activatedAt: number; expiresAt: number };
+const organiserSubscriptions: Record<string, OrganiserSubscription> = {};
+
+export function activateOrganiserSubscription(userId: string, plan: OrganiserPlan) {
+  const months = plan === "1m" ? 1 : plan === "3m" ? 3 : plan === "6m" ? 6 : 12;
+  const now = Date.now();
+  const base = organiserSubscriptions[userId]?.expiresAt && organiserSubscriptions[userId].expiresAt > now ? organiserSubscriptions[userId].expiresAt : now;
+  const expiresAt = addMonths(base, months);
+  organiserSubscriptions[userId] = { plan, activatedAt: now, expiresAt };
+  return organiserSubscriptions[userId];
+}
+
+export function getOrganiserSubscription(userId: string) {
+  return organiserSubscriptions[userId] || null;
+}
+
+export function isOrganiserActive(userId: string) {
+  const sub = organiserSubscriptions[userId];
+  return !!(sub && sub.expiresAt > Date.now());
+}
+
 // ── Merchandise ──────────────────────────────────────────────────────────────
 
 const products: Product[] = [
