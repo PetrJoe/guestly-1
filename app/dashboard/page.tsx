@@ -4,6 +4,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Card from "@/components/ui/Card";
 import Link from "next/link";
 import { events } from "@/lib/events";
+import Image from "next/image";
 
 const stats = [
   { label: "Total Events", value: "6", icon: "📅", color: "bg-primary-50 text-primary-700" },
@@ -76,7 +77,7 @@ export default function DashboardPage() {
               <div key={ev.id} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
                 <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
                   {ev.image && (
-                    <img src={ev.image} alt="" className="h-full w-full object-cover" />
+                    <Image src={ev.image} alt="" width={40} height={40} className="h-full w-full object-cover" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">

@@ -5,6 +5,7 @@ import TopNav from "@/components/layout/TopNav";
 import Footer from "@/components/layout/Footer";
 import BottomNav from "@/components/layout/BottomNav";
 import { filterEvents } from "@/lib/events";
+import Image from "next/image";
 
 const cities = [
   { name: "Lagos", emoji: "🇳🇬", color: "from-primary-500 to-primary-700" },
@@ -57,12 +58,14 @@ export default async function Home() {
               </div>
             </div>
             <div className="lg:pl-8">
-              <div className="relative overflow-hidden rounded-2xl border border-neutral-100 bg-neutral-900">
+              <div className="relative overflow-hidden rounded-2xl border border-neutral-100 bg-neutral-900 h-60 sm:h-72">
                 {featured[0]?.image && (
-                  <img
+                  <Image
                     src={featured[0].image}
                     alt=""
-                    className="h-60 w-full object-cover opacity-60 sm:h-72"
+                    fill
+                    sizes="100vw"
+                    className="object-cover opacity-60"
                   />
                 )}
                 <div className="absolute inset-0 bg-linear-to-t from-neutral-950/70 via-neutral-950/30 to-transparent" />

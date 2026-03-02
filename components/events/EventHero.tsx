@@ -1,7 +1,7 @@
 import React from "react";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
-import Link from "next/link";
+import Image from "next/image";
 
 type Props = {
   id?: string;
@@ -32,13 +32,15 @@ export default function EventHero({
   });
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-neutral-900">
+    <div className="relative overflow-hidden rounded-2xl bg-neutral-900 h-60 sm:h-72">
       {/* Background image */}
       <div className="absolute inset-0">
-        <img
+        <Image
           src={image}
           alt=""
-          className="h-full w-full object-cover opacity-40"
+          fill
+          sizes="100vw"
+          className="object-cover opacity-40"
         />
         <div className="absolute inset-0 bg-linear-to-r from-neutral-900/90 via-neutral-900/70 to-transparent" />
       </div>
@@ -87,4 +89,3 @@ export default function EventHero({
     </div>
   );
 }
-

@@ -1,6 +1,7 @@
 import React from "react";
 import Card from "@/components/ui/Card";
 import { getEventById } from "@/lib/events";
+import Image from "next/image";
 
 export default function OverviewTab({ eventId }: { eventId: string }) {
   const e = getEventById(eventId);
@@ -20,7 +21,7 @@ export default function OverviewTab({ eventId }: { eventId: string }) {
       <div className="flex items-start gap-4">
         <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-neutral-100">
           {e.image && (
-            <img src={e.image} alt={e.title} className="h-full w-full object-cover" />
+            <Image src={e.image} alt={e.title} width={80} height={80} className="h-full w-full object-cover" />
           )}
         </div>
         <div className="flex-1">
@@ -81,4 +82,3 @@ export default function OverviewTab({ eventId }: { eventId: string }) {
     </div>
   );
 }
-

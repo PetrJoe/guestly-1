@@ -5,6 +5,7 @@ import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import Link from "next/link";
 import { events } from "@/lib/events";
+import Image from "next/image";
 
 export default function MyEventsPage() {
   return (
@@ -34,7 +35,7 @@ export default function MyEventsPage() {
               {/* Image */}
               <div className="relative h-36 w-full bg-neutral-100">
                 {ev.image && (
-                  <img src={ev.image} alt={ev.title} className="h-full w-full object-cover" />
+                  <Image src={ev.image} alt={ev.title} fill sizes="(max-width: 1024px) 100vw, 33vw" className="object-cover" />
                 )}
                 <span className="absolute right-2 top-2">
                   <Badge variant="success">Active</Badge>

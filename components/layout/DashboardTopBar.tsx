@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Avatar from "@/components/ui/Avatar";
 import { useSidebar } from "@/components/ui/sidebar";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 function SearchIcon({ className = "h-5 w-5" }: { className?: string }) {
@@ -80,7 +81,7 @@ export default function DashboardTopBar() {
   }
 
   return (
-    <header className={`sticky top-0 z-40 w-full bg-white/95 backdrop-blur-sm transition-[margin,width] duration-200 ease-linear ${headerLayout} relative`}>
+    <header className={`sticky top-0 z-40 w-full bg-[var(--background)]/95 backdrop-blur-sm transition-[margin,width] duration-200 ease-linear ${headerLayout} relative`}>
       {/* Place the sidebar trigger exactly on the sidebar border */}
       <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 hidden md:flex z-50">
         <SidebarTrigger className="border border-neutral-200 bg-white shadow-sm" />
@@ -107,6 +108,7 @@ export default function DashboardTopBar() {
         </div>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <button className="relative flex h-9 w-9 items-center justify-center rounded-md text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700" aria-label="Notifications">
             <BellIcon />
             <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary-500" />

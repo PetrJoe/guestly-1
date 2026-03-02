@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
+import Image from "next/image";
 
 export type EventCardProps = {
   id: string;
@@ -26,10 +27,12 @@ export default function EventCard(props: EventCardProps) {
     >
       {/* Image */}
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-neutral-100">
-        <img
+        <Image
           src={props.image}
           alt={props.title}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
         {/* Category pill */}
         <div className="absolute left-3 top-3">
@@ -71,4 +74,3 @@ export default function EventCard(props: EventCardProps) {
     </Link>
   );
 }
-
