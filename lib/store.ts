@@ -49,6 +49,11 @@ export type VendorProfile = {
   contactEmail: string;
   contactPhone: string;
   status: "pending" | "approved" | "rejected";
+  subscription?: {
+    plan: "1m" | "3m" | "6m" | "12m";
+    activatedAt: number;
+    expiresAt: number;
+  };
 };
 
 const availability: Record<string, TicketAvailability> = {};
@@ -227,6 +232,37 @@ export function createVendorProfile(userId: string, data: Omit<VendorProfile, "i
 
 export function getVendorProfile(userId: string) {
   return vendors[userId] || null;
+}
+
+// ── Vendor Subscription ───────────────────────────────────────────────────────
+export type VendorPlan = "1m" | "3m" | "6m" | "12m";
+
+function addMonths(ts: number, months: number) {
+  const d = new Date(ts);
+  d.setMonth(d.getMonth() + months);
+  return d.getTime();
+}
+
+export function activateVendorSubscription(userId: string, plan: VendorPlan) {
+  const profile = vendors[userId];
+  if (!profile) throw new Error("Vendor profile not found");
+  const months = plan === "1m" ? 1 : plan === "3m" ? 3 : plan === "6m" ? 6 : 12;
+  const now = Date.now();
+  const base = profile.subscription && profile.subscription.expiresAt > now ? profile.subscription.expiresAt : now;
+  const expiresAt = addMonths(base, months);
+  profile.subscription = { plan, activatedAt: now, expiresAt };
+  return profile.subscription;
+}
+
+export function getVendorSubscription(userId: string) {
+  const profile = vendors[userId];
+  if (!profile) return null;
+  return profile.subscription || null;
+}
+
+export function isVendorActive(userId: string) {
+  const sub = getVendorSubscription(userId);
+  return !!(sub && sub.expiresAt > Date.now());
 }
 
 // ── Merchandise ──────────────────────────────────────────────────────────────

@@ -30,12 +30,15 @@ export default function VendorDashboard() {
   const [profile, setProfile] = React.useState<Profile>(null);
   const [invites, setInvites] = React.useState<Invitation[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [subscription, setSubscription] = React.useState<{ expiresAt: number } | null>(null);
 
   async function load() {
     setLoading(true);
     try {
       const p = await fetch("/api/vendor/profile").then((r) => r.json());
       if (p?.ok) setProfile(p.profile as Profile);
+      const s = await fetch("/api/vendor/subscription").then((r) => r.json()).catch(() => null);
+      if (s?.ok) setSubscription(s.subscription || null);
       const i = await fetch("/api/vendor/invitations").then((r) => r.json());
       if (i?.ok) setInvites(i.data as Invitation[]);
     } finally {
@@ -86,6 +89,17 @@ export default function VendorDashboard() {
           <div className="text-sm font-semibold text-neutral-900">Status</div>
           <div className="mt-1 text-xs text-neutral-600">
             {profile ? <>Profile <span className="font-medium">{profile.status}</span></> : "Onboarding incomplete"}
+          </div>
+          <div className="mt-3 rounded-lg border border-neutral-200 bg-white p-3">
+            <div className="text-xs font-semibold text-neutral-900">Subscription</div>
+            <div className="mt-1 text-xs text-neutral-600">
+              {subscription && subscription.expiresAt > Date.now()
+                ? <>Active • Expires {new Date(subscription.expiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</>
+                : "Inactive"}
+            </div>
+            <Link href="/vendor/subscription" className="mt-2 inline-flex">
+              <Button size="sm" variant="outline">{subscription && subscription.expiresAt > Date.now() ? "Manage" : "Activate"}</Button>
+            </Link>
           </div>
         </Card>
       </div>
