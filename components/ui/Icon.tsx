@@ -531,30 +531,6 @@ const icons: Record<IconName, (props: React.SVGProps<SVGSVGElement>) => React.JS
       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.197c.816.196 1.578-.311 1.578-1.102V10.274c0-.507-.311-.959-.784-1.143a60.09 60.09 0 0 1-15.797-2.197m15.797 2.197V3.75a.75.75 0 0 0-1.5 0v1.734c-1.332-.204-2.684-.336-4.053-.395m4.053.395a60.28 60.28 0 0 1-15.797 2.197M3 19.5V6.75A.75.75 0 0 0 1.5 6.75v12.75a.75.75 0 0 0 1.5 0ZM6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm0 4.5a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
     </svg>
   ),
-};
-
-function Icon({ name, className = "", size = 20 }: IconProps) {
-  const IconComponent = icons[name];
-  
-  if (!IconComponent) {
-    console.warn(`Icon "${name}" not found`);
-    return null;
-  }
-
-  return (
-    <IconComponent
-      className={className}
-      width={size}
-      height={size}
-      aria-hidden="true"
-    />
-  );
-}
-
-// Named export for compatibility
-export { Icon };
-// Default export
-export default Icon;
   "chevron-left": (props) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
