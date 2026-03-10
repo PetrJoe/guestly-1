@@ -60,12 +60,12 @@ export default function AdminDashboard() {
           <div className="h-64">
              <LineChart 
               data={[
-                { date: "Jan", value: 4500 },
-                { date: "Feb", value: 5200 },
-                { date: "Mar", value: 6100 },
-                { date: "Apr", value: 5900 },
-                { date: "May", value: 7200 },
-                { date: "Jun", value: 8500 },
+                { label: "Jan", value: 4500 },
+                { label: "Feb", value: 5200 },
+                { label: "Mar", value: 6100 },
+                { label: "Apr", value: 5900 },
+                { label: "May", value: 7200 },
+                { label: "Jun", value: 8500 },
               ]}
               color="#4392F1"
             />
