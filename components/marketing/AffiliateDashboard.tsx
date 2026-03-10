@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Icon } from '@/components/ui/Icon';
-import { Tabs } from '@/components/ui/Tabs';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Icon from '@/components/ui/Icon';
+import Tabs from '@/components/ui/Tabs';
+import Input from '@/components/ui/Input';
 import AffiliatePerformance from './AffiliatePerformance';
 import type { Affiliate } from '@/lib/marketing';
 

@@ -9,7 +9,7 @@ function makeToken(prefix: string) {
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const email: string = body?.email || "";
-  const role: "attendee" | "organiser" | "vendor" = body?.role || "attendee";
+  const role: "attendee" | "organiser" | "vendor" | "admin" = body?.role || "attendee";
 
   if (!email) {
     return NextResponse.json({ ok: false, error: "Email required" }, { status: 400 });

@@ -1,10 +1,10 @@
 # AGENTS.md
 
-This file provides guidance to WARP (warp.dev) when working with code in this repository.
+This file provides guidance when working with code in this repository.
 
 ## Project Overview
 
-Guestly is an event ticketing, planning, and community platform targeting African cities (Lagos, Abuja, Accra, Nairobi). It supports physical, virtual, and hybrid events with ticketing, merchandise, wallet/payments, vendor management, analytics, and real-time community features.
+Guestly is an event ticketing, planning, and community platform targeting African cities (Lagos, Abuja, Accra, Nairobi, etc). It supports physical, virtual, and hybrid events with ticketing, merchandise, wallet/payments, vendor management, analytics, and real-time community features.
 
 ## Commands
 

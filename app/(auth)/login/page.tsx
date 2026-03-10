@@ -52,12 +52,12 @@ export default function LoginPage() {
             key={r}
             type="button"
             onClick={() => setRole(r)}
-            className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all duration-200 ${role === r
+            className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all duration-200 capitalize ${role === r
               ? "bg-[var(--surface-card)] text-[var(--foreground)] shadow-sm ring-1 ring-[var(--surface-border)]"
               : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
               }`}
           >
-            {r === "attendee" ? "Attendee" : "Organiser"}
+            {r}
           </button>
         ))}
       </div>

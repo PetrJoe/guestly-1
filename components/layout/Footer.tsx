@@ -62,9 +62,9 @@ const socialLinks = [
 
 export default function Footer() {
   return (
-    <footer className="bg-navy-800 text-navy-200">
+    <footer className="bg-[var(--surface-card)] text-[var(--foreground-muted)] border-t border-[var(--surface-border)]">
       {/* Top Feature Bar */}
-      <div className="border-b border-navy-700">
+      <div className="border-b border-[var(--surface-border)]">
         <div className="container py-8">
           <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
             {[
@@ -76,8 +76,8 @@ export default function Footer() {
               <div key={item.title} className="flex items-center gap-3">
                 <span className="text-2xl">{item.icon}</span>
                 <div>
-                  <p className="text-xs font-semibold text-white">{item.title}</p>
-                  <p className="text-xs text-navy-400">{item.desc}</p>
+                  <p className="text-xs font-black text-[var(--foreground)] uppercase tracking-wider">{item.title}</p>
+                  <p className="text-[10px] text-[var(--foreground-subtle)] font-medium uppercase tracking-widest">{item.desc}</p>
                 </div>
               </div>
             ))}
@@ -94,64 +94,65 @@ export default function Footer() {
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-500 text-sm font-black text-white shadow-md btn-glow-blue transition-all group-hover:scale-105">
                 G
               </div>
-              <span className="text-base font-bold tracking-tight text-white">Guestly</span>
+              <span className="text-base font-bold tracking-tight text-[var(--foreground)]">Guestly</span>
             </Link>
-            <p className="mt-3 text-sm leading-relaxed text-navy-400">
+            <p className="mt-3 text-sm leading-relaxed text-[var(--foreground-muted)]">
               The event infrastructure platform for Africa and beyond.
             </p>
+
             {/* Social Links */}
             <div className="mt-4 flex items-center gap-2">
-              {socialLinks.map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={s.label}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg bg-navy-700 text-navy-300 transition hover:bg-primary-500/20 hover:text-primary-400"
-                >
-                  {s.icon}
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Links */}
-          {Object.entries({
-            Discover: footerLinks.discover,
-            Organise: footerLinks.organise,
-            Account: footerLinks.account,
-            Platform: footerLinks.platform,
-          }).map(([section, links]) => (
-            <div key={section}>
-              <div className="mb-4 text-xs font-bold uppercase tracking-widest text-navy-500">{section}</div>
-              <ul className="flex flex-col gap-2.5">
-                {links.map((l) => (
-                  <li key={l.label}>
-                    <Link href={l.href} className="text-sm text-navy-300 transition-colors hover:text-white">
-                      {l.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
-        {/* Bottom bar */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-navy-700 pt-6 sm:flex-row">
-          <div className="text-xs text-navy-500">
-            &copy; {new Date().getFullYear()} Guestly. All rights reserved. Built for Africa.
-          </div>
-          <div className="flex gap-5">
-            {["Privacy", "Terms", "Support"].map((label) => (
-              <Link key={label} href="#" className="text-xs text-navy-500 transition-colors hover:text-navy-300">
-                {label}
-              </Link>
+            {socialLinks.map((s) => (
+              <a
+                key={s.label}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={s.label}
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--surface-bg)] text-[var(--foreground-subtle)] transition hover:bg-primary-500/20 hover:text-primary-600 dark:hover:text-primary-400"
+              >
+                {s.icon}
+              </a>
             ))}
           </div>
         </div>
+
+        {/* Links */}
+        {Object.entries({
+          Discover: footerLinks.discover,
+          Organise: footerLinks.organise,
+          Account: footerLinks.account,
+          Platform: footerLinks.platform,
+        }).map(([section, links]) => (
+          <div key={section}>
+            <div className="mb-4 text-xs font-black uppercase tracking-widest text-[var(--foreground-subtle)]">{section}</div>
+            <ul className="flex flex-col gap-2.5">
+              {links.map((l) => (
+                <li key={l.label}>
+                  <Link href={l.href} className="text-sm text-[var(--foreground-muted)] transition-colors hover:text-primary-600 dark:hover:text-primary-400">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
+
+      {/* Bottom bar */}
+      <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-[var(--surface-border)] pt-6 sm:flex-row">
+        <div className="text-xs text-[var(--foreground-subtle)] font-medium">
+          &copy; {new Date().getFullYear()} Guestly. All rights reserved. Built for Africa.
+        </div>
+        <div className="flex gap-5">
+          {["Privacy", "Terms", "Support"].map((label) => (
+            <Link key={label} href="#" className="text-[10px] font-black uppercase tracking-widest text-[var(--foreground-subtle)] transition-colors hover:text-[var(--foreground)]">
+              {label}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
     </footer>
   );
 }

@@ -4,7 +4,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
 
-export default function VendorRegisterPage() {
+export default function AffiliateRegisterPage() {
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -26,13 +26,13 @@ export default function VendorRegisterPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, role: "vendor" }),
+        body: JSON.stringify({ email, password, role: "attendee" }),
       });
       const data = await res.json();
       if (res.ok) {
-        setMessage(data.message || "Account created! Check your email to verify.");
+        setMessage(data.message || "Application submitted! Check your email to verify.");
       } else {
-        setError(data.error || "Registration failed. Please try again.");
+        setError(data.error || "Application failed. Please try again.");
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -44,8 +44,8 @@ export default function VendorRegisterPage() {
   return (
     <div className="w-full max-w-md rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-8 shadow-xl">
       <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-[var(--foreground)]">Create your Vendor account</h1>
-        <p className="mt-2 text-sm text-[var(--foreground-muted)]">Join Guestly and reach event organisers</p>
+        <h1 className="text-2xl font-bold tracking-tight text-[var(--foreground)]">Apply to the Affiliate Program</h1>
+        <p className="mt-2 text-sm text-[var(--foreground-muted)]">Start earning commissions on event referrals</p>
       </div>
       {error && (
         <div className="mb-4 rounded-lg bg-danger-50 border border-danger-200 p-3 text-sm text-danger-700">
@@ -58,17 +58,17 @@ export default function VendorRegisterPage() {
         </div>
       )}
       <form onSubmit={submit} className="flex flex-col gap-4">
-        <Input label="Business name" placeholder="Acme Security" value={name} onChange={(e) => setName(e.currentTarget.value)} required />
-        <Input label="Email" type="email" placeholder="vendor@example.com" value={email} onChange={(e) => setEmail(e.currentTarget.value)} required />
+        <Input label="Full name" placeholder="John Doe" value={name} onChange={(e) => setName(e.currentTarget.value)} required />
+        <Input label="Email" type="email" placeholder="affiliate@example.com" value={email} onChange={(e) => setEmail(e.currentTarget.value)} required />
         <Input label="Password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.currentTarget.value)} required />
         <Input label="Confirm password" type="password" placeholder="••••••••" value={confirm} onChange={(e) => setConfirm(e.currentTarget.value)} required />
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Creating account…" : "Create Account"}
+          {loading ? "Submitting application…" : "Apply Now"}
         </Button>
       </form>
       <p className="mt-6 text-center text-sm text-[var(--foreground-muted)]">
-        Already a vendor?{" "}
-        <Link href="/vendor-auth/login" className="font-medium text-primary-600 hover:text-primary-700">
+        Already an affiliate?{" "}
+        <Link href="/affiliate-auth/login" className="font-medium text-primary-600 hover:text-primary-700">
           Sign in
         </Link>
       </p>

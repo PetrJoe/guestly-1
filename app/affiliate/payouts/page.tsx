@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
 
 export default function AffiliatePayoutsPage() {
   const [payouts, setPayouts] = useState<any[]>([]);
@@ -35,10 +35,10 @@ export default function AffiliatePayoutsPage() {
 
   return (
     <ProtectedRoute allowRoles={['attendee', 'organiser']}>
-      <div className="container py-8">
-        <h1 className="text-3xl font-bold mb-6">Payouts</h1>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold">Payouts</h1>
         
-        <Card className="p-6 mb-6">
+        <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Pending Earnings</h2>
           <p className="text-4xl font-bold text-green-600 mb-4">
             ₦{pendingEarnings.toLocaleString()}

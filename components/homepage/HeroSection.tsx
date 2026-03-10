@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 import type { Event } from "@/lib/events";
 import Button from "@/components/ui/Button";
+import Icon from "@/components/ui/Icon";
 
 interface HeroSectionProps {
   featured: Event[];
@@ -12,45 +14,14 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({ featured, stats }: HeroSectionProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const heroRef = useRef<HTMLElement>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Intersection observer for fade-in animation
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setIsVisible(true);
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    if (heroRef.current) {
-      observer.observe(heroRef.current);
-    }
-
-    return () => {
-      if (heroRef.current) {
-        observer.unobserve(heroRef.current);
-      }
-    };
-  }, []);
-
-  // Cycle through featured event images with smooth transitions
+  // Cycle through featured event images
   useEffect(() => {
     if (featured.length <= 1) return;
 
     const interval = setInterval(() => {
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentImageIndex((prev) => (prev + 1) % Math.min(featured.length, 3));
-        setIsTransitioning(false);
-      }, 300);
+      setCurrentImageIndex((prev) => (prev + 1) % Math.min(featured.length, 3));
     }, 6000);
 
     return () => clearInterval(interval);
@@ -59,328 +30,209 @@ export default function HeroSection({ featured, stats }: HeroSectionProps) {
   const currentEvent = featured[currentImageIndex] || featured[0];
 
   return (
-    <section
-      ref={heroRef}
-      className="relative overflow-hidden bg-gradient-to-br from-[var(--surface-card)] via-[var(--surface-bg)] to-primary-50/30 pb-0 pt-20 sm:pt-28 lg:pt-36"
-    >
-      {/* Dynamic background with animated gradients - enhanced for more energy */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {/* Primary blue glow - larger and more prominent */}
-        <div
-          className="absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-primary-500/15 blur-3xl transition-all duration-[var(--duration-slower)]"
-          style={{
-            animation: "pulseGlow 6s ease-in-out infinite",
-            animationDelay: "0s",
+    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-[var(--surface-bg)] pt-20 sm:pt-28 lg:pt-36">
+      {/* Premium background with animated gradients */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.15, 0.2, 0.15],
+            x: [0, 50, 0],
+            y: [0, -30, 0],
           }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-40 -right-40 h-[800px] w-[800px] rounded-full bg-primary-500/20 blur-[120px]"
         />
-        {/* Success green glow */}
-        <div
-          className="absolute -bottom-32 -left-32 h-[500px] w-[500px] rounded-full bg-success-500/12 blur-3xl transition-all duration-[var(--duration-slower)]"
-          style={{
-            animation: "pulseGlow 7s ease-in-out infinite",
-            animationDelay: "2s",
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.1, 0.15, 0.1],
+            x: [0, -40, 0],
+            y: [0, 60, 0],
           }}
-        />
-        {/* Accent red glow - adding brand red */}
-        <div
-          className="absolute top-1/3 right-1/4 h-[350px] w-[350px] rounded-full bg-danger-500/8 blur-3xl transition-all duration-[var(--duration-slower)]"
-          style={{
-            animation: "pulseGlow 8s ease-in-out infinite",
-            animationDelay: "4s",
-          }}
-        />
-        {/* Additional moving gradient orbs for energy */}
-        <div
-          className="absolute top-1/4 left-1/3 h-[250px] w-[250px] rounded-full bg-warning-500/10 blur-3xl transition-all duration-[var(--duration-slower)]"
-          style={{
-            animation: "pulseGlow 9s ease-in-out infinite",
-            animationDelay: "1s",
-          }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute -bottom-40 -left-40 h-[700px] w-[700px] rounded-full bg-success-500/15 blur-[100px]"
         />
       </div>
 
-      <div className="container relative">
+      <div className="container relative z-10">
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-20">
-          {/* Left: Content with fade-in animation */}
-          <div
-            className={`flex flex-col gap-7 transition-all duration-[var(--duration-slower)] ease-[var(--ease-out)] ${
-              isVisible
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-12"
-            }`}
+          {/* Content side */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="flex flex-col gap-8 text-center lg:text-left"
           >
-            {/* Badge with pulse animation */}
-            <span
-              className={`inline-flex w-fit items-center gap-2.5 rounded-full border border-primary-200 bg-primary-50 px-4 py-2.5 text-xs font-semibold text-primary-700 dark:border-primary-800 dark:bg-primary-950 dark:text-primary-300 transition-all duration-[var(--duration-normal)] ease-[var(--ease-spring)] ${
-                isVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
-              }`}
-              style={{
-                transitionDelay: "150ms",
-              }}
-            >
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-500 opacity-75"></span>
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary-500"></span>
-              </span>
-              Africa&apos;s Event Infrastructure Platform
-            </span>
-
-            {/* Large typography hierarchy - enhanced sizing and contrast */}
-            <h1
-              className={`text-5xl font-extrabold leading-[1.08] tracking-tight text-[var(--foreground)] sm:text-6xl lg:text-7xl xl:text-8xl transition-all duration-[var(--duration-slower)] ease-[var(--ease-out)] ${
-                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
-              }`}
-              style={{
-                transitionDelay: "250ms",
-              }}
-            >
-              Find the moments{" "}
-              <span className="relative inline-block">
-                <span className="text-gradient-brand">that shape</span>
-                {/* Subtle underline accent */}
-                <span className="absolute -bottom-2 left-0 h-1 w-full bg-gradient-to-r from-primary-500 to-success-500 rounded-full opacity-40"></span>
-              </span>{" "}
-              the culture
-            </h1>
-
-            {/* Description - larger and more prominent */}
-            <p
-              className={`max-w-xl text-xl leading-relaxed text-[var(--foreground-muted)] transition-all duration-[var(--duration-slower)] ease-[var(--ease-out)] ${
-                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
-              }`}
-              style={{
-                transitionDelay: "350ms",
-              }}
-            >
-              From Lagos tech meetups to Nairobi food carnivals — discover
-              live, virtual, and hybrid events. Buy tickets in seconds, save
-              your favourites, and build communities that last.
-            </p>
-
-            {/* CTA Buttons with enhanced glow effects */}
-            <div
-              className={`flex flex-wrap items-center gap-4 pt-3 transition-all duration-[var(--duration-slower)] ease-[var(--ease-out)] ${
-                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
-              }`}
-              style={{
-                transitionDelay: "450ms",
-              }}
-            >
-              <Button
-                href="/explore"
-                variant="primary"
-                size="lg"
-                glow
-                className="h-14 px-10 text-base font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-[var(--duration-normal)] ease-[var(--ease-spring)]"
+            <div className="space-y-4">
+              <motion.span
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="inline-flex items-center gap-2 rounded-full border border-primary-500/30 bg-primary-500/10 px-4 py-2 text-xs font-bold uppercase tracking-widest text-primary-600 dark:text-primary-400 backdrop-blur-md"
               >
-                Explore events
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-400 opacity-75"></span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary-500"></span>
+                </span>
+                Live in Lagos, Abuja, Accra & Nairobi
+              </motion.span>
+              <h1 className="text-5xl font-black tracking-tight text-[var(--foreground)] sm:text-6xl lg:text-7xl leading-[1.1]">
+                Experiences that <span className="text-gradient-blue">define</span> your world.
+              </h1>
+              <p className="max-w-xl text-lg leading-relaxed text-[var(--foreground-muted)] lg:mx-0 mx-auto">
+                Discover, host, and monetize unforgettable events. From high-energy concerts to tech summits and hybrid communities.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-4 lg:justify-start">
+              <Button href="/explore" size="xl" glow className="min-w-[180px]">
+                Explore Events
               </Button>
-              <Button
-                href="/register"
-                variant="outline"
-                size="lg"
-                className="h-14 px-10 text-base font-semibold hover:bg-[var(--interactive-hover)] hover:scale-105 transition-all duration-[var(--duration-normal)] ease-[var(--ease-spring)]"
-              >
-                Start organising
+              <Button href="/dashboard/events/new" variant="outline" size="xl" className="min-w-[180px] border-[var(--surface-border)] bg-[var(--surface-card)] text-[var(--foreground)] hover:bg-[var(--surface-hover)] backdrop-blur-md">
+                Host an Event
               </Button>
             </div>
 
-            {/* Trust badges with icons */}
-            <div
-              className={`flex flex-wrap items-center gap-6 pt-3 transition-all duration-[var(--duration-slower)] ease-[var(--ease-out)] ${
-                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
-              }`}
-              style={{
-                transitionDelay: "550ms",
-              }}
+            {/* Quick Search */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="relative max-w-xl lg:mx-0 mx-auto w-full"
             >
-              {[
-                { icon: "✓", text: "Free to browse" },
-                { icon: "✓", text: "Secure checkout" },
-                { icon: "✓", text: "Virtual & hybrid events" },
-              ].map((badge, index) => (
-                <span
-                  key={badge.text}
-                  className="flex items-center gap-2.5 text-sm font-medium text-[var(--foreground-subtle)]"
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-primary-500 to-primary-800 rounded-3xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                <div className="relative flex items-center bg-[var(--surface-card)] rounded-2xl border border-[var(--surface-border)] px-6 py-4 backdrop-blur-xl">
+                  <Icon name="search" size={20} className="text-[var(--foreground-subtle)] mr-4" />
+                  <input 
+                    type="text" 
+                    placeholder="Search for concerts, tech summits, workshops..." 
+                    className="bg-transparent border-none outline-none text-[var(--foreground)] placeholder-[var(--foreground-subtle)] w-full text-sm font-medium"
+                  />
+                  <div className="h-8 w-px bg-[var(--surface-border)] mx-4 hidden sm:block"></div>
+                  <button className="hidden sm:block text-xs font-black text-primary-600 dark:text-primary-400 uppercase tracking-widest hover:text-primary-500 transition-colors">
+                    Find Events
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-6 sm:grid-cols-4 lg:pt-8 border-t border-[var(--surface-border)] pt-8">
+              {stats.map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + i * 0.1 }}
                 >
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-success-500 text-xs font-bold text-white shadow-sm">
-                    {badge.icon}
-                  </span>
-                  {badge.text}
-                </span>
+                  <p className="text-2xl font-black text-[var(--foreground)]">{stat.value}</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-[var(--foreground-muted)]">{stat.label}</p>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
 
-          {/* Right: Dynamic event visual with enhanced transitions */}
-          <div
-            className={`relative lg:pl-8 transition-all duration-[var(--duration-slower)] ease-[var(--ease-out)] ${
-              isVisible
-                ? "opacity-100 translate-x-0 scale-100"
-                : "opacity-0 translate-x-12 scale-95"
-            }`}
-            style={{
-              transitionDelay: "350ms",
-            }}
+          {/* Visual side - Featured Event Glass Card */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="relative"
           >
-            {/* Main featured event card with enhanced styling */}
-            <div className="relative overflow-hidden rounded-3xl border-2 border-[var(--surface-border)] bg-navy-800 shadow-2xl transition-all duration-[var(--duration-normal)] hover:shadow-[var(--shadow-glow-primary)] hover:scale-[1.02] hover:border-primary-500/50">
-              <div className="relative h-[420px] sm:h-[480px] lg:h-[540px]">
-                {/* Event image with smooth transition */}
-                {currentEvent?.image && (
-                  <div className="relative h-full w-full">
+            <div className="relative aspect-[4/5] w-full max-w-[500px] mx-auto">
+              {/* Background Glow */}
+              <div className="absolute inset-0 bg-primary-500/20 blur-[100px]" />
+              
+              {/* Main Card */}
+              <div className="relative h-full w-full overflow-hidden rounded-[40px] border border-[var(--surface-border)] bg-[var(--surface-card)] p-4 shadow-2xl dark:bg-navy-800/40 dark:backdrop-blur-2xl">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentEvent?.id}
+                    initial={{ opacity: 0, scale: 1.1 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.8 }}
+                    className="relative h-full w-full overflow-hidden rounded-[32px]"
+                  >
                     <Image
-                      key={currentImageIndex}
-                      src={currentEvent.image}
-                      alt={currentEvent.title || "Featured event"}
+                      src={currentEvent?.image || "/globe.svg"}
+                      alt={currentEvent?.title || "Event"}
                       fill
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      className={`object-cover transition-all duration-[var(--duration-slower)] ease-[var(--ease-out)] ${
-                        isTransitioning ? "opacity-0 scale-105" : "opacity-80 scale-100"
-                      }`}
-                      priority
+                      className="object-cover transition-transform duration-[6s] hover:scale-110"
                     />
-                  </div>
-                )}
-
-                {/* Enhanced gradient overlay for better text contrast */}
-                <div className="absolute inset-0 bg-gradient-to-t from-navy-950/98 via-navy-900/60 to-transparent" />
-
-                {/* Animated accent line at top */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-500 via-success-500 to-danger-500 opacity-80"></div>
-
-                {/* Content overlay with enhanced glass morphism */}
-                <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
-                  <div className="glass-dark rounded-2xl p-6 sm:p-7 backdrop-blur-xl border-2 border-white/10 transition-all duration-[var(--duration-normal)] hover:border-white/20">
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-500 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg animate-pulse-glow">
-                        <span className="text-sm">✦</span>
-                        Featured
-                      </span>
-                      <span className="text-sm font-medium text-navy-200">
-                        {currentEvent?.date &&
-                          new Date(currentEvent.date).toLocaleDateString(
-                            "en-GB",
-                            {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            }
-                          )}
-                        {currentEvent?.city && ` · ${currentEvent.city}`}
-                      </span>
-                    </div>
-
-                    <h3 className="mb-5 line-clamp-2 text-2xl sm:text-3xl font-bold leading-tight text-white">
-                      {currentEvent?.title}
-                    </h3>
-
-                    {currentEvent?.id && (
-                      <Button
-                        href={`/events/${currentEvent.id}`}
-                        variant="primary"
-                        size="md"
-                        className="bg-white text-navy-900 hover:bg-white/90 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-[var(--duration-normal)] ease-[var(--ease-spring)]"
-                        rightIcon={
-                          <svg
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2.5}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M9 5l7 7-7 7"
-                            />
-                          </svg>
-                        }
+                    {/* Content Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-bg)] via-[var(--surface-bg)]/20 to-transparent" />
+                    
+                    <div className="absolute bottom-0 left-0 right-0 p-8">
+                      <motion.div
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                        className="space-y-3"
                       >
-                        View event
-                      </Button>
-                    )}
+                        <span className="inline-flex rounded-full bg-primary-500 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white">
+                          Featured Event
+                        </span>
+                        <h3 className="text-3xl font-black text-[var(--foreground)] leading-tight">
+                          {currentEvent?.title}
+                        </h3>
+                        <div className="flex items-center gap-4 text-sm font-bold text-[var(--foreground-muted)]">
+                          <span className="flex items-center gap-1.5">
+                            <Icon name="location" size={14} className="text-primary-500" /> {currentEvent?.city}
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <Icon name="calendar" size={14} className="text-primary-500" /> {new Date(currentEvent?.date || "").toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </span>
+                        </div>
+                        <Link 
+                          href={`/events/${currentEvent?.id}`}
+                          className="mt-4 inline-flex items-center gap-2 text-sm font-black text-primary-600 dark:text-primary-400 hover:text-primary-500 transition-colors"
+                        >
+                          View Details
+                          <Icon name="arrow-right" size={16} />
+                        </Link>
+                      </motion.div>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Decorative elements */}
+              <motion.div
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -right-8 top-1/4 rounded-3xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-6 shadow-2xl hidden sm:block dark:bg-white/5 dark:backdrop-blur-xl"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-full bg-success-500/20 flex items-center justify-center text-xl text-success-600 dark:text-success-400">
+                    <Icon name="ticket" size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[var(--foreground-subtle)] uppercase tracking-widest">Selling Fast</p>
+                    <p className="text-lg font-black text-[var(--foreground)]">95% Sold Out</p>
                   </div>
                 </div>
-              </div>
-            </div>
+              </motion.div>
 
-            {/* Enhanced floating stat card with animation */}
-            <div
-              className="absolute -bottom-8 -left-8 rounded-2xl border-2 border-[var(--surface-border)] bg-[var(--surface-card)] p-6 shadow-2xl transition-all duration-[var(--duration-normal)] hover:-translate-y-2 hover:shadow-[var(--shadow-glow-primary)] hover:border-primary-500/50"
-              style={{
-                animation: isVisible
-                  ? "fadeInUp 0.7s ease-out 0.9s both"
-                  : "none",
-              }}
-            >
-              <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-success-50 to-success-100 dark:from-success-950 dark:to-success-900 shadow-sm">
-                  <span className="text-3xl">🎟️</span>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground-muted)]">
-                    Tickets sold today
-                  </p>
-                  <p className="text-3xl font-extrabold text-[var(--foreground)] tabular-nums bg-gradient-to-r from-[var(--foreground)] to-primary-600 bg-clip-text">
-                    1,247
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Enhanced image indicator dots */}
-            {featured.length > 1 && (
-              <div className="absolute -bottom-14 left-1/2 flex -translate-x-1/2 gap-2.5">
-                {featured.slice(0, 3).map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      setIsTransitioning(true);
-                      setTimeout(() => {
-                        setCurrentImageIndex(index);
-                        setIsTransitioning(false);
-                      }, 300);
-                    }}
-                    className={`h-2.5 rounded-full transition-all duration-[var(--duration-normal)] ease-[var(--ease-spring)] ${
-                      index === currentImageIndex
-                        ? "w-10 bg-primary-500 shadow-[var(--shadow-glow-primary)]"
-                        : "w-2.5 bg-[var(--surface-border)] hover:bg-primary-300 hover:w-6"
-                    }`}
-                    aria-label={`View event ${index + 1}`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Stats bar with enhanced staggered animation and styling */}
-      <div className="mt-24 border-t-2 border-[var(--surface-border)] bg-gradient-to-b from-[var(--surface-bg)] to-[var(--surface-card)]">
-        <div className="container">
-          <div className="grid grid-cols-2 gap-0 sm:grid-cols-4 divide-x-2 divide-[var(--surface-border)]">
-            {stats.map((stat, index) => (
-              <div
-                key={stat.label}
-                className={`group flex flex-col items-center justify-center py-10 px-4 transition-all duration-[var(--duration-slower)] ease-[var(--ease-out)] hover:bg-[var(--interactive-hover)] ${
-                  isVisible
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 translate-y-8"
-                }`}
-                style={{
-                  transitionDelay: `${650 + index * 120}ms`,
-                }}
+              <motion.div
+                animate={{ y: [0, 10, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                className="absolute -left-12 bottom-1/4 rounded-3xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-6 shadow-2xl hidden sm:block dark:bg-white/5 dark:backdrop-blur-xl"
               >
-                <p className="text-4xl sm:text-5xl font-extrabold text-[var(--foreground)] tabular-nums bg-gradient-to-br from-[var(--foreground)] to-primary-600 bg-clip-text transition-all duration-[var(--duration-normal)] group-hover:scale-110">
-                  {stat.value}
-                </p>
-                <p className="mt-2 text-sm font-semibold text-[var(--foreground-muted)] transition-colors duration-[var(--duration-normal)] group-hover:text-[var(--foreground)]">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </div>
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-full bg-primary-500/20 flex items-center justify-center text-xl text-primary-500">
+                    <Icon name="sparkles" size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[var(--foreground-subtle)] uppercase tracking-widest">Community</p>
+                    <p className="text-lg font-black text-[var(--foreground)]">12K+ Joined</p>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>

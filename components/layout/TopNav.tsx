@@ -70,17 +70,59 @@ const publicLinks = [
   { href: "/search", label: "Search" },
 ];
 
+const solutions = [
+  {
+    href: "/organiser",
+    label: "Organisers",
+    desc: "Create, manage and scale your events.",
+    icon: "zap",
+    color: "bg-primary-500/20 text-primary-600 dark:text-primary-400"
+  },
+  {
+    href: "/vendor",
+    label: "Vendors",
+    desc: "Get discovered and grow your business.",
+    icon: "shopping-bag",
+    color: "bg-success-500/20 text-success-600 dark:text-success-400"
+  },
+  {
+    href: "/affiliate",
+    label: "Affiliates",
+    desc: "Earn commissions by sharing events.",
+    icon: "activity",
+    color: "bg-warning-500/20 text-warning-600 dark:text-warning-400"
+  },
+];
+
+import { motion, AnimatePresence } from "framer-motion";
+import Icon from "@/components/ui/Icon";
+
 export default function TopNav() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [profileOpen, setProfileOpen] = React.useState(false);
+  const [solutionsOpen, setSolutionsOpen] = React.useState(false);
   const [role, setRole] = React.useState<string | null>(null);
   const [scrolled, setScrolled] = React.useState(false);
   const profileRef = React.useRef<HTMLDivElement>(null);
+  const solutionsRef = React.useRef<HTMLDivElement>(null);
   const mobileCloseRef = React.useRef<HTMLButtonElement>(null);
   const profileButtonRef = React.useRef<HTMLButtonElement>(null);
   const profileMenuId = React.useId();
+
+  React.useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (solutionsRef.current && !solutionsRef.current.contains(e.target as Node)) {
+        setSolutionsOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   React.useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10);
@@ -180,6 +222,62 @@ export default function TopNav() {
                   )}
                 </Link>
               ))}
+
+              {/* Solutions Mega Menu */}
+              <div className="relative" ref={solutionsRef}>
+                <button
+                  onClick={() => setSolutionsOpen(!solutionsOpen)}
+                  onMouseEnter={() => setSolutionsOpen(true)}
+                  className={`group flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-medium transition-all duration-150 ${solutionsOpen
+                      ? "text-primary-600 bg-primary-50"
+                      : "text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
+                    }`}
+                >
+                  Solutions
+                  <ChevronDownIcon className={`h-4 w-4 transition-transform duration-200 ${solutionsOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                <AnimatePresence>
+                  {solutionsOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      onMouseLeave={() => setSolutionsOpen(false)}
+                      className="absolute left-0 top-full mt-2 w-80 overflow-hidden rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-2 shadow-2xl backdrop-blur-xl"
+                    >
+                      <div className="grid gap-1">
+                        {solutions.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setSolutionsOpen(false)}
+                            className="group flex items-start gap-4 rounded-xl p-3 transition-all hover:bg-[var(--surface-hover)]"
+                          >
+                            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.color} transition-transform group-hover:scale-110`}>
+                              <Icon name={item.icon as any} size={20} />
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm font-black text-[var(--foreground)] uppercase tracking-wider">{item.label}</p>
+                              <p className="text-xs text-[var(--foreground-muted)] leading-relaxed">{item.desc}</p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                      <div className="mt-2 border-t border-[var(--surface-border)] bg-[var(--surface-bg)]/50 p-3">
+                        <Link
+                          href="/register"
+                          className="flex items-center justify-between rounded-lg px-2 py-1 text-xs font-black uppercase tracking-widest text-primary-600 dark:text-primary-400 hover:text-primary-500 transition-colors"
+                        >
+                          <span>Get Started with Guestly</span>
+                          <Icon name="arrow-right" size={14} />
+                        </Link>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </nav>
           </div>
 
@@ -311,6 +409,27 @@ export default function TopNav() {
                   {link.label}
                 </Link>
               ))}
+
+              <div className="my-3 border-t border-[var(--surface-border)]" />
+              <div className="px-4 pb-2">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--foreground-subtle)]">Solutions</p>
+              </div>
+              <div className="grid gap-1 px-2">
+                {solutions.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-3 rounded-xl px-4 py-3 transition-colors hover:bg-[var(--surface-hover)]"
+                  >
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${item.color}`}>
+                      <Icon name={item.icon as any} size={16} />
+                    </div>
+                    <span className="text-sm font-black uppercase tracking-wider text-[var(--foreground)]">{item.label}</span>
+                  </Link>
+                ))}
+              </div>
+
               <div className="my-3 border-t border-[var(--surface-border)]" />
               
               {/* Theme Toggle in mobile menu */}

@@ -40,12 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# codespace metadata
-.directories
-
 # IDE and tooling
 .vscode/
 .kiro/
+AGENTS.md
 
 # Expo
 .expo/

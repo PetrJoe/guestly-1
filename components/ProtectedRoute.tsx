@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 interface Props {
   children: React.ReactNode;
-  allowRoles?: Array<"attendee" | "organiser" | "vendor">;
+  allowRoles?: Array<"attendee" | "organiser" | "vendor" | "admin">;
 }
 
 export default function ProtectedRoute({ children, allowRoles }: Props) {
@@ -14,16 +14,21 @@ export default function ProtectedRoute({ children, allowRoles }: Props) {
     async function check() {
       const res = await fetch("/api/auth/me", { method: "GET", credentials: "include" });
       if (!res.ok) {
-        router.replace("/login");
+        if (allowRoles?.includes("admin")) router.replace("/admin/login");
+        else if (allowRoles?.includes("vendor")) router.replace("/vendor");
+        else router.replace("/login");
         return;
       }
-      const data = (await res.json()) as { ok: boolean; role?: "attendee" | "organiser" | "vendor" };
+      const data = (await res.json()) as { ok: boolean; role?: "attendee" | "organiser" | "vendor" | "admin" };
       if (!data.ok) {
-        router.replace("/login");
+        if (allowRoles?.includes("admin")) router.replace("/admin/login");
+        else if (allowRoles?.includes("vendor")) router.replace("/vendor");
+        else router.replace("/login");
         return;
       }
       if (allowRoles && data.role && !allowRoles.includes(data.role)) {
-        if (data.role === "organiser") router.replace("/dashboard");
+        if (data.role === "admin") router.replace("/admin");
+        else if (data.role === "organiser") router.replace("/dashboard");
         else if (data.role === "vendor") router.replace("/vendor");
         else router.replace("/attendee");
         return;

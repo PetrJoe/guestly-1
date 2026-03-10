@@ -2,6 +2,7 @@
 import React, { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import OrderSummary from "@/components/tickets/OrderSummary";
 import PaymentMethodSelector from "@/components/tickets/PaymentMethodSelector";
@@ -10,6 +11,8 @@ import Stepper from "@/components/ui/Stepper";
 import { useCart } from "@/features/merchandise/CartProvider";
 import ShippingAddressForm from "@/components/merchandise/ShippingAddressForm";
 import { PromoCodeInput } from "@/components/tickets/PromoCodeInput";
+import Icon from "@/components/ui/Icon";
+import QRDisplay from "@/components/tickets/QRDisplay";
 import type { ShippingAddress } from "@/types/merchandise";
 
 type Order = {
@@ -20,129 +23,54 @@ type Order = {
   status: "pending" | "paid";
 };
 
-// ── Merch checkout summary ──────────────────────────────────────────────────
+// ── Confetti ────────────────────────────────────────────────────────────────
 
-function MerchSummary({ items, total }: { items: { name: string; quantity: number; price: number; image: string; size?: string }[]; total: number }) {
+function Confetti() {
+  const pieces = Array.from({ length: 40 });
   return (
-    <div className="rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-5 shadow-sm">
-      <h3 className="text-sm font-semibold text-[var(--foreground)]">Order Summary</h3>
-      <div className="mt-3 space-y-3">
-        {items.map((item, i) => (
-          <div key={i} className="flex items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--surface-bg)] text-xl">
-              {item.image}
-            </span>
-            <div className="flex-1 min-w-0">
-              <p className="truncate text-sm font-medium text-[var(--foreground)]">{item.name}</p>
-              {item.size && <p className="text-[11px] text-[var(--foreground-subtle)]">Size: {item.size}</p>}
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-semibold text-[var(--foreground)] tabular-nums">${(item.price * item.quantity).toFixed(2)}</p>
-              <p className="text-[11px] text-[var(--foreground-subtle)]">×{item.quantity}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="mt-4 flex justify-between border-t border-[var(--surface-border)] pt-3">
-        <span className="text-sm font-semibold text-[var(--foreground)]">Total</span>
-        <span className="text-base font-bold text-[var(--foreground)] tabular-nums">${total.toFixed(2)}</span>
-      </div>
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-50">
+      {pieces.map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ 
+            top: -20, 
+            left: `${Math.random() * 100}%`,
+            rotate: 0,
+            opacity: 1
+          }}
+          animate={{ 
+            top: "110%",
+            left: `${(Math.random() * 100) + (Math.random() * 20 - 10)}%`,
+            rotate: 720,
+            opacity: 0
+          }}
+          transition={{ 
+            duration: 2 + Math.random() * 3, 
+            delay: Math.random() * 2,
+            ease: "easeIn"
+          }}
+          className="absolute w-2 h-2 rounded-sm"
+          style={{ 
+            backgroundColor: ['#4392F1', '#248232', '#DF2935', '#F59E0B', '#8B5CF6'][Math.floor(Math.random() * 5)] 
+          }}
+        />
+      ))}
     </div>
   );
 }
 
-// ── Combined checkout summary ───────────────────────────────────────────────
+// ── Summary Components ──────────────────────────────────────────────────────
 
-function CombinedSummary({ 
-  ticketItems, 
-  ticketTotal, 
-  merchItems, 
-  merchTotal, 
-  combinedTotal 
-}: { 
-  ticketItems: any[]; 
-  ticketTotal: number; 
-  merchItems: { name: string; quantity: number; price: number; image: string; size?: string }[]; 
-  merchTotal: number;
-  combinedTotal: number;
-}) {
+function SummaryCard({ title, children, total }: { title: string; children: React.ReactNode; total: number }) {
   return (
-    <div className="rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-5 shadow-sm">
-      <h3 className="text-sm font-semibold text-[var(--foreground)]">Order Summary</h3>
-      
-      {/* Tickets Section */}
-      {ticketItems.length > 0 && (
-        <div className="mt-3 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-medium text-[var(--foreground-muted)]">
-            <span>🎫</span>
-            <span>TICKETS</span>
-          </div>
-          {ticketItems.map((item, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-xl">
-                🎫
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="truncate text-sm font-medium text-[var(--foreground)]">{item.eventTitle}</p>
-                <p className="text-[11px] text-[var(--foreground-subtle)]">
-                  {item.type}
-                  {item.attendanceType && ` • ${item.attendanceType === 'physical' ? 'Physical' : 'Virtual'}`}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-semibold text-[var(--foreground)] tabular-nums">${(item.price * item.quantity).toFixed(2)}</p>
-                <p className="text-[11px] text-[var(--foreground-subtle)]">×{item.quantity}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      
-      {/* Merchandise Section */}
-      {merchItems.length > 0 && (
-        <div className="mt-4 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-medium text-[var(--foreground-muted)]">
-            <span>🛍️</span>
-            <span>MERCHANDISE</span>
-          </div>
-          {merchItems.map((item, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--surface-bg)] text-xl">
-                {item.image}
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="truncate text-sm font-medium text-[var(--foreground)]">{item.name}</p>
-                {item.size && <p className="text-[11px] text-[var(--foreground-subtle)]">Size: {item.size}</p>}
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-semibold text-[var(--foreground)] tabular-nums">${(item.price * item.quantity).toFixed(2)}</p>
-                <p className="text-[11px] text-[var(--foreground-subtle)]">×{item.quantity}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      
-      {/* Subtotals */}
-      <div className="mt-4 space-y-2 border-t border-[var(--surface-border)] pt-3">
-        {ticketItems.length > 0 && (
-          <div className="flex justify-between text-sm text-[var(--foreground-muted)]">
-            <span>Tickets subtotal</span>
-            <span className="tabular-nums">${ticketTotal.toFixed(2)}</span>
-          </div>
-        )}
-        {merchItems.length > 0 && (
-          <div className="flex justify-between text-sm text-[var(--foreground-muted)]">
-            <span>Merchandise subtotal</span>
-            <span className="tabular-nums">${merchTotal.toFixed(2)}</span>
-          </div>
-        )}
+    <div className="rounded-[2rem] border border-white/10 bg-navy-900/50 p-6 backdrop-blur-xl shadow-2xl">
+      <h3 className="text-sm font-black uppercase tracking-widest text-white mb-4">{title}</h3>
+      <div className="space-y-4">
+        {children}
       </div>
-      
-      {/* Total */}
-      <div className="mt-3 flex justify-between border-t border-[var(--surface-border)] pt-3">
-        <span className="text-sm font-semibold text-[var(--foreground)]">Total</span>
-        <span className="text-base font-bold text-[var(--foreground)] tabular-nums">${combinedTotal.toFixed(2)}</span>
+      <div className="mt-6 flex justify-between border-t border-white/10 pt-4">
+        <span className="text-sm font-bold text-navy-400">Total Amount</span>
+        <span className="text-lg font-black text-primary-400 tabular-nums">${total.toFixed(2)}</span>
       </div>
     </div>
   );
@@ -153,7 +81,7 @@ function CombinedSummary({
 function CheckoutContent() {
   const params = useSearchParams();
   const router = useRouter();
-  const checkoutType = params.get("type") || "ticket"; // "ticket" | "merch" | "combined"
+  const checkoutType = params.get("type") || "ticket";
   const orderId = params.get("orderId") || "";
 
   const { 
@@ -171,6 +99,9 @@ function CheckoutContent() {
   const [method, setMethod] = React.useState<"wallet" | "card">("wallet");
   const [loading, setLoading] = React.useState(checkoutType === "ticket");
   const [processing, setProcessing] = React.useState(false);
+  const [showConfetti, setShowConfetti] = React.useState(false);
+  const [orderComplete, setOrderComplete] = React.useState(false);
+  const [completedOrder, setCompletedOrder] = React.useState<Order | null>(null);
   const [shippingAddress, setShippingAddress] = React.useState<ShippingAddress>({
     fullName: "",
     addressLine1: "",
@@ -183,495 +114,478 @@ function CheckoutContent() {
   });
   const [shippingErrors, setShippingErrors] = React.useState<Partial<Record<keyof ShippingAddress, string>>>({});
   
-  // Promo code state
   const [promoCode, setPromoCode] = React.useState<string>('');
   const [promoDiscount, setPromoDiscount] = React.useState<number>(0);
-  
-  // Savings state
   const [savingsTarget, setSavingsTarget] = React.useState<any>(null);
   const [savingsApplied, setSavingsApplied] = React.useState(0);
-  const [loadingSavings, setLoadingSavings] = React.useState(false);
+  const [needsShipping, setNeedsShipping] = React.useState(false);
 
   const isMerch = checkoutType === "merch";
   const isCombined = checkoutType === "combined";
   const hasTickets = ticketItems.length > 0;
   const hasMerch = cartItems.length > 0;
+  const isEmpty = isCombined ? (!hasTickets && !hasMerch) : isMerch ? !hasMerch : (!orderId && !order && !loading);
 
-  // Check if cart has delivery items
-  const [needsShipping, setNeedsShipping] = React.useState(false);
-  
   React.useEffect(() => {
-    if (isCombined && (hasMerch || hasTickets)) {
-      // Check if any merch items need delivery
-      if (hasMerch) {
-        fetch(`/api/merch/products?ids=${cartItems.map(i => i.productId).join(",")}`)
-          .then(res => res.json())
-          .then(data => {
-            if (data.success && data.products) {
-              const hasDelivery = data.products.some((p: any) => p.fulfillmentType === "delivery");
-              setNeedsShipping(hasDelivery);
-            }
-          });
-      }
-    } else if (isMerch && cartItems.length > 0) {
-      // Check if any items need delivery
+    if ((isCombined || isMerch) && hasMerch) {
       fetch(`/api/merch/products?ids=${cartItems.map(i => i.productId).join(",")}`)
         .then(res => res.json())
         .then(data => {
           if (data.success && data.products) {
-            const hasDelivery = data.products.some((p: any) => p.fulfillmentType === "delivery");
-            setNeedsShipping(hasDelivery);
+            setNeedsShipping(data.products.some((p: any) => p.fulfillmentType === "delivery"));
           }
         });
     }
-  }, [isMerch, isCombined, cartItems, hasMerch, hasTickets]);
+  }, [isMerch, isCombined, cartItems, hasMerch]);
 
   React.useEffect(() => {
     if (!isMerch && orderId) {
-      async function load() {
-        const res = await fetch(`/api/orders?id=${orderId}`);
-        const data = await res.json();
-        if (res.ok) setOrder(data.order as Order);
-        setLoading(false);
-      }
-      load();
+      fetch(`/api/orders?id=${orderId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.order) setOrder(data.order);
+          setLoading(false);
+        });
     }
   }, [orderId, isMerch]);
   
-  // Fetch savings target for the event
   React.useEffect(() => {
     async function fetchSavings() {
-      // Only check savings for ticket orders (not merch-only)
       if (isMerch) return;
-      
-      let eventId: string | undefined;
-      
-      if (isCombined && hasTickets) {
-        // For combined checkout, use the first ticket's event
-        eventId = ticketItems[0]?.eventId;
-      } else if (order) {
-        // For ticket-only checkout
-        eventId = order.eventId;
-      }
-      
+      const eventId = isCombined ? ticketItems[0]?.eventId : order?.eventId;
       if (!eventId) return;
       
-      setLoadingSavings(true);
       try {
         const res = await fetch(`/api/wallet/savings/by-event?eventId=${eventId}`);
         const data = await res.json();
-        
         if (data.success && data.target && data.target.currentAmount > 0) {
           setSavingsTarget(data.target);
-          
-          // Calculate how much savings to apply
-          const orderTotal = isCombined ? combinedTotal : order?.total || 0;
-          const availableSavings = data.target.currentAmount;
-          const amountToApply = Math.min(availableSavings, orderTotal);
-          
-          setSavingsApplied(amountToApply);
+          const orderTotalValue = isCombined ? combinedTotal : order?.total || 0;
+          setSavingsApplied(Math.min(data.target.currentAmount, orderTotalValue));
         }
       } catch (error) {
-        console.error("Failed to fetch savings:", error);
-      } finally {
-        setLoadingSavings(false);
+        console.error(error);
       }
     }
-    
     fetchSavings();
   }, [order, isMerch, isCombined, hasTickets, ticketItems, combinedTotal]);
 
   function proceed() {
-    if (isCombined) {
-      // Handle combined checkout (tickets + merch)
+    if (method !== "wallet") {
+      alert("Only Wallet payments are supported in this demo for instant confirmation.");
+      return;
+    }
+
+    if (isCombined || isMerch) {
       if (needsShipping) {
-        const errors: Partial<Record<keyof ShippingAddress, string>> = {};
-        const requiredFields: (keyof ShippingAddress)[] = [
-          "fullName",
-          "addressLine1",
-          "city",
-          "state",
-          "postalCode",
-          "country",
-          "phone",
-        ];
-        
-        for (const field of requiredFields) {
-          if (!shippingAddress[field]) {
-            errors[field] = "This field is required";
-          }
-        }
-        
-        if (Object.keys(errors).length > 0) {
-          setShippingErrors(errors);
-          return;
-        }
+        const errors: any = {};
+        ["fullName", "addressLine1", "city", "state", "postalCode", "country", "phone"].forEach(f => {
+          if (!shippingAddress[f as keyof ShippingAddress]) errors[f] = "Required";
+        });
+        if (Object.keys(errors).length > 0) return setShippingErrors(errors);
       }
       
       setProcessing(true);
-      
-      // Create both ticket and merch orders
       const promises: Promise<any>[] = [];
       
-      // Create ticket orders if any
-      if (hasTickets) {
-        ticketItems.forEach(ticketItem => {
-          const ticketOrderPromise = fetch("/api/orders", {
+      if (isCombined && hasTickets) {
+        ticketItems.forEach(it => {
+          promises.push(fetch("/api/orders", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              eventId: ticketItem.eventId,
-              items: [{
-                type: ticketItem.type,
-                quantity: ticketItem.quantity,
-                price: ticketItem.price,
-                attendanceType: ticketItem.attendanceType
-              }],
-              savingsApplied: savingsApplied,
+              eventId: it.eventId,
+              items: [{ type: it.type, quantity: it.quantity, price: it.price, attendanceType: it.attendanceType }],
+              savingsApplied,
               savingsTargetId: savingsTarget?.id,
             }),
-          }).then(res => res.json());
-          promises.push(ticketOrderPromise);
+          }).then(r => r.json()));
         });
       }
       
-      // Create merch order if any
       if (hasMerch) {
-        const eventId = cartItems[0]?.eventId || "";
-        const orderItems = cartItems.map(item => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          size: item.size,
-        }));
-        
-        const merchOrderPromise = fetch("/api/merch/orders", {
+        promises.push(fetch("/api/merch/orders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            eventId,
-            items: orderItems,
+            eventId: cartItems[0].eventId,
+            items: cartItems.map(i => ({ productId: i.productId, quantity: i.quantity, size: i.size })),
             shippingAddress: needsShipping ? shippingAddress : undefined,
           }),
-        }).then(res => res.json());
-        promises.push(merchOrderPromise);
+        }).then(r => r.json()));
       }
       
-      Promise.all(promises)
-        .then(results => {
-          const allSuccess = results.every(r => r.success);
-          if (allSuccess) {
-            clearAll();
-            // Redirect to a combined confirmation page
-            const orderIds = results.map(r => r.order?.id || r.orderId).filter(Boolean).join(",");
-            router.replace(`/confirmation/combined?orderIds=${orderIds}`);
-          } else {
-            alert("Failed to create some orders");
-            setProcessing(false);
-          }
-        })
-        .catch(() => {
-          alert("Failed to create orders");
+      Promise.all(promises).then(async results => {
+        if (results.every(r => r.success)) {
+          // In this demo, we simulate instant payment and confirmation
+          const firstOrderId = results[0].order?.id || results[0].orderId;
+          
+          // Call payment API to mark as paid
+          await fetch("/api/payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ orderId: firstOrderId, method: "wallet" }),
+          });
+
+          setShowConfetti(true);
           setProcessing(false);
-        });
+          setOrderComplete(true);
+          
+          // Fetch the full order details for the confirmation view
+          const orderRes = await fetch(`/api/orders?id=${firstOrderId}`);
+          const orderData = await orderRes.json();
+          if (orderData.order) {
+            setCompletedOrder(orderData.order);
+          }
+          
+          clearAll();
+          // We don't redirect immediately anymore, we show the confirmation in-place or after a delay
+          setTimeout(() => {
+            const ids = results.map(r => r.order?.id || r.orderId).filter(Boolean).join(",");
+            router.replace(`/confirmation/${ids.split(',')[0]}?allIds=${ids}`);
+          }, 5000);
+        } else {
+          setProcessing(false);
+          alert("Checkout failed");
+        }
+      });
       return;
     }
     
-    if (isMerch) {
-      // Validate shipping address if needed
-      if (needsShipping) {
-        const errors: Partial<Record<keyof ShippingAddress, string>> = {};
-        const requiredFields: (keyof ShippingAddress)[] = [
-          "fullName",
-          "addressLine1",
-          "city",
-          "state",
-          "postalCode",
-          "country",
-          "phone",
-        ];
-        
-        for (const field of requiredFields) {
-          if (!shippingAddress[field]) {
-            errors[field] = "This field is required";
-          }
-        }
-        
-        if (Object.keys(errors).length > 0) {
-          setShippingErrors(errors);
-          return;
-        }
-      }
-      
-      // Create merch order
-      setProcessing(true);
-      const eventId = cartItems[0]?.eventId || "";
-      const orderItems = cartItems.map(item => ({
-        productId: item.productId,
-        quantity: item.quantity,
-        size: item.size,
-      }));
-      
-      fetch("/api/merch/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          eventId,
-          items: orderItems,
-          shippingAddress: needsShipping ? shippingAddress : undefined,
-        }),
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            clearCart();
-            router.replace(`/confirmation/merch-order?orderId=${data.order.id}`);
-          } else {
-            alert(data.error || "Failed to create order");
-            setProcessing(false);
-          }
-        })
-        .catch(() => {
-          alert("Failed to create order");
-          setProcessing(false);
-        });
-      return;
-    }
     if (!order) return;
     
-    // Build payment URL with savings info
-    let paymentUrl = `/payment?orderId=${order.id}&method=${method}`;
-    if (savingsApplied > 0 && savingsTarget) {
-      paymentUrl += `&savingsApplied=${savingsApplied}&savingsTargetId=${savingsTarget.id}`;
-    }
-    router.replace(paymentUrl);
+    setProcessing(true);
+    // Instant payment for ticket-only flow
+    fetch("/api/payment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId: order.id, method: "wallet" }),
+    }).then(async res => {
+      const data = await res.json();
+      if (data.ok) {
+        setShowConfetti(true);
+        setProcessing(false);
+        setOrderComplete(true);
+        
+        const orderRes = await fetch(`/api/orders?id=${order.id}`);
+        const orderData = await orderRes.json();
+        if (orderData.order) {
+          setCompletedOrder(orderData.order);
+        }
+
+        setTimeout(() => {
+          router.replace(`/confirmation/${order.id}`);
+        }, 5000);
+      } else {
+        setProcessing(false);
+        alert(data.error || "Payment failed");
+      }
+    });
   }
 
-  const stepLabels = isMerch || isCombined
-    ? [
-        { label: "Cart", description: "Review items" },
-        { label: "Checkout", description: "Payment details" },
-        { label: "Done", description: "Order confirmed" }
-      ]
-    : [
-        { label: "Tickets", description: "Select tickets" },
-        { label: "Checkout", description: "Payment method" },
-        { label: "Payment", description: "Complete purchase" }
-      ];
-  const isEmpty = isCombined 
-    ? !hasTickets && !hasMerch
-    : isMerch 
-      ? cartItems.length === 0 
-      : !order;
-  const showLoading = !isMerch && !isCombined ? loading : false;
+  const stepLabels = [
+    { label: "Select", description: "Your items" },
+    { label: "Details", description: "Shipping & Info" },
+    { label: "Payment", description: "Secure checkout" }
+  ];
 
   return (
     <ProtectedRoute allowRoles={["attendee"]}>
-      <div className="container py-8">
-        {/* Breadcrumb */}
-        <nav className="mb-6 flex items-center gap-1.5 text-xs text-[var(--foreground-subtle)]">
-          <Link href="/" className="hover:text-[var(--foreground-muted)] transition-colors">Home</Link>
-          <span>/</span>
-          {isMerch && (
-            <>
-              <Link href="/cart" className="hover:text-[var(--foreground-muted)] transition-colors">Cart</Link>
-              <span>/</span>
-            </>
-          )}
-          <span className="text-[var(--foreground-muted)] font-medium">Checkout</span>
-        </nav>
-
-        {/* Progress Stepper */}
-        <div className="mb-10 mx-auto max-w-2xl">
-          <Stepper 
-            steps={stepLabels} 
-            currentStep={1}
-            orientation="horizontal"
-          />
+      <div className="min-h-screen bg-navy-950 py-12 relative overflow-hidden">
+        {showConfetti && <Confetti />}
+        
+        {/* Background Glows */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary-500/10 blur-[120px] rounded-full" />
+          <div className="absolute -bottom-40 -right-40 w-[400px] h-[400px] bg-success-500/10 blur-[100px] rounded-full" />
         </div>
 
-        {showLoading ? (
-          <div className="mx-auto max-w-4xl space-y-6 animate-fade-in">
-            {/* Skeleton for payment method selector */}
-            <div className="space-y-4">
-              <div className="h-6 w-32 bg-[var(--surface-border)] rounded shimmer" />
-              <div className="space-y-3">
-                <div className="h-20 bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl shimmer" />
-                <div className="h-20 bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl shimmer" />
-              </div>
-            </div>
-            
-            {/* Skeleton for order summary */}
-            <div className="h-64 bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl shimmer" />
-          </div>
-        ) : isEmpty ? (
-          <div className="flex flex-col items-center gap-3 py-12 text-center">
-            <span className="text-4xl">{isMerch ? "🛒" : "🎫"}</span>
-            <p className="text-sm text-[var(--foreground-muted)]">
-              {isMerch ? "Your cart is empty." : "Order not found."}
-            </p>
-            <Link href={isMerch ? "/explore" : "/"}>
-              <Button variant="outline" size="sm">
-                {isMerch ? "Browse Events" : "Go Home"}
-              </Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 lg:grid-cols-5">
-            {/* Left: Payment method - Full width on mobile */}
-            <div className="lg:col-span-3 order-2 lg:order-1">
-              {/* Shipping Address Form for delivery items */}
-              {(isMerch || isCombined) && needsShipping && (
-                <div className="mb-6 rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-5 shadow-sm">
-                  <ShippingAddressForm
-                    value={shippingAddress}
-                    onChange={setShippingAddress}
-                    errors={shippingErrors}
-                  />
-                </div>
-              )}
+        <div className="container max-w-6xl relative z-10">
+          <AnimatePresence mode="wait">
+            {orderComplete && completedOrder ? (
+              <motion.div
+                key="confirmation"
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 1.1 }}
+                className="flex flex-col items-center justify-center py-12"
+              >
+                <div className="w-full max-w-lg overflow-hidden rounded-[2.5rem] border border-white/10 bg-navy-900/50 backdrop-blur-2xl p-8 sm:p-12 shadow-3xl text-center">
+                  {/* Animated Success Icon */}
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.2 }}
+                    className="relative flex h-24 w-24 items-center justify-center rounded-full bg-success-500/20 mx-auto mb-8"
+                  >
+                    <motion.div 
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                      className="absolute inset-0 rounded-full bg-success-500/10" 
+                    />
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success-500 shadow-xl shadow-success-500/40">
+                      <Icon name="check" size={32} className="text-white" />
+                    </div>
+                  </motion.div>
 
-              <h2 className="mb-4 text-lg font-bold text-[var(--foreground)] sm:text-base">
-                Payment Method
-              </h2>
-              
-              {/* Trust signals */}
-              <div className="mb-6 flex flex-wrap items-center gap-4 rounded-xl bg-success-50 border border-success-200 px-4 py-3">
-                <div className="flex items-center gap-2 text-xs text-success-700">
-                  <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                  <span className="font-medium">Secure SSL Encrypted</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-success-700">
-                  <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="font-medium">Verified Organizer</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-success-700">
-                  <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  <span className="font-medium">Full Refund Policy</span>
-                </div>
-              </div>
+                  <div className="space-y-4 mb-8">
+                    <h1 className="text-3xl font-black text-white">Order Confirmed!</h1>
+                    <p className="text-navy-300 font-medium leading-relaxed max-w-sm mx-auto">
+                      Your experience is ready. Redirecting to your tickets in a few seconds...
+                    </p>
+                  </div>
 
-              <PaymentMethodSelector 
-                value={method} 
-                onChange={setMethod}
-                orderTotal={isCombined ? combinedTotal : isMerch ? cartTotal : order?.total}
-                savingsApplied={savingsApplied}
-              />
+                  {/* Order Summary Glass Card */}
+                  <div className="bg-white/5 rounded-3xl border border-white/5 p-6 mb-8 text-left">
+                    <div className="flex justify-between items-center mb-4 pb-4 border-b border-white/5">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-navy-400">Order Reference</span>
+                      <span className="font-mono text-xs text-primary-400 font-bold">{completedOrder.id.split('_')[1]?.toUpperCase() || completedOrder.id.slice(0, 8).toUpperCase()}</span>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {completedOrder.items.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center">
+                          <div>
+                            <p className="text-sm font-bold text-white">{item.type} Ticket</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-navy-400">
+                              {item.quantity} Unit{item.quantity > 1 ? 's' : ''}
+                            </p>
+                          </div>
+                          <span className="text-sm font-bold text-white">${(item.price * item.quantity).toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
 
-              {/* Promo Code Input */}
-              {!isMerch && order && (
-                <div className="mt-6">
-                  <PromoCodeInput
-                    eventId={order.eventId}
-                    onApply={(code, discount) => {
-                      setPromoCode(code);
-                      setPromoDiscount(discount);
-                    }}
-                    onRemove={() => {
-                      setPromoCode('');
-                      setPromoDiscount(0);
-                    }}
-                    appliedCode={promoCode}
-                    appliedDiscount={promoDiscount}
-                  />
+                    <div className="mt-4 pt-4 border-t border-white/5 flex justify-between items-center">
+                      <span className="text-sm font-black text-white">Total Paid</span>
+                      <span className="text-xl font-black text-primary-400">${completedOrder.total.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  {/* QR Code Section */}
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.4 }}
+                    className="bg-white rounded-[2rem] p-8 mb-8 shadow-2xl shadow-black/20"
+                  >
+                    <div className="mx-auto w-full max-w-[160px]">
+                      <QRDisplay value={completedOrder.id} />
+                    </div>
+                  </motion.div>
+
+                  <Button href="/attendee" size="xl" className="w-full">
+                    Go to My Tickets Now
+                  </Button>
                 </div>
-              )}
-
-              {/* Mobile-optimized button with proper touch target */}
-              <div className="mt-6 sticky bottom-4 lg:static">
-                <Button
-                  onClick={proceed}
-                  className="w-full min-h-[48px] text-base font-semibold shadow-lg lg:shadow-sm"
-                  size="lg"
-                  disabled={processing}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="checkout"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                {/* Header */}
+                <motion.div 
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-12 text-center"
                 >
-                  {processing ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Processing…
-                    </span>
-                  ) : (
-                    "Proceed to Payment"
-                  )}
-                </Button>
-                
-                {/* Additional trust signals below button */}
-                <div className="mt-4 text-center">
-                  <p className="text-xs text-[var(--foreground-subtle)]">
-                    By proceeding, you agree to our{" "}
-                    <Link href="/terms" className="text-primary-600 hover:underline">Terms</Link>
-                    {" "}and{" "}
-                    <Link href="/refund-policy" className="text-primary-600 hover:underline">Refund Policy</Link>
-                  </p>
-                  <div className="mt-3 flex items-center justify-center gap-3 text-[var(--foreground-subtle)]">
-                    <span className="text-xs">Powered by</span>
-                    <div className="flex items-center gap-2">
-                      <div className="h-5 w-5 rounded bg-primary-100 flex items-center justify-center">
-                        <span className="text-xs font-bold text-primary-600">G</span>
-                      </div>
-                      <span className="text-xs font-semibold">Guestly Pay</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+                  <Link href="/" className="inline-flex items-center gap-2 text-navy-400 hover:text-white mb-6 transition-colors font-bold text-sm">
+                    <Icon name="chevron-left" size={16} /> Back to Events
+                  </Link>
+                  <h1 className="text-4xl font-black text-white">Checkout</h1>
+                </motion.div>
 
-            {/* Right: Order summary - Shows first on mobile for context */}
-            <div className="lg:col-span-2 order-1 lg:order-2">
-              {/* Savings Applied Banner */}
-              {savingsApplied > 0 && savingsTarget && (
-                <div className="mb-4 rounded-xl bg-success-50 border border-success-200 p-4 animate-fade-in">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-success-500 text-white">
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-success-900">🎉 Savings Applied!</p>
-                      <p className="text-xs text-success-700 mt-1">
-                        ${savingsApplied.toFixed(2)} from your event savings has been automatically applied to this order.
-                        {savingsTarget.currentAmount - savingsApplied > 0 && (
-                          <> You'll have ${(savingsTarget.currentAmount - savingsApplied).toFixed(2)} remaining.</>
-                        )}
-                      </p>
+                {/* Stepper */}
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="mb-16 mx-auto max-w-3xl"
+                >
+                  <Stepper steps={stepLabels} currentStep={1} orientation="horizontal" />
+                </motion.div>
+
+                {loading ? (
+                  <div className="flex justify-center py-24">
+                    <div className="flex gap-1">
+                      <span className="h-3 w-3 rounded-full bg-primary-500 animate-bounce" />
+                      <span className="h-3 w-3 rounded-full bg-primary-500 animate-bounce [animation-delay:0.2s]" />
+                      <span className="h-3 w-3 rounded-full bg-primary-500 animate-bounce [animation-delay:0.4s]" />
                     </div>
                   </div>
-                </div>
-              )}
-              
-              {isCombined ? (
-                <CombinedSummary 
-                  ticketItems={ticketItems} 
-                  ticketTotal={ticketTotal}
-                  merchItems={cartItems} 
-                  merchTotal={cartTotal}
-                  combinedTotal={combinedTotal}
-                />
-              ) : isMerch ? (
-                <MerchSummary items={cartItems} total={cartTotal} />
-              ) : (
-                order && (
-                  <OrderSummary 
-                    items={order.items} 
-                    total={order.total} 
-                    showBreakdown 
-                    savingsApplied={savingsApplied}
-                    remainingSavings={savingsTarget ? savingsTarget.currentAmount - savingsApplied : 0}
-                  />
-                )
-              )}
-            </div>
-          </div>
-        )}
+                ) : isEmpty ? (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center gap-6 py-20 text-center"
+                  >
+                    <span className="text-7xl">🛒</span>
+                    <p className="text-xl font-bold text-navy-200">Your cart is empty.</p>
+                    <Button href="/explore" size="lg">Discover Experiences</Button>
+                  </motion.div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 items-start">
+                    {/* Left Column: Forms */}
+                    <motion.div 
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.3 }}
+                      className="lg:col-span-7 space-y-8"
+                    >
+                      {/* Shipping */}
+                      {needsShipping && (
+                        <div className="rounded-[2rem] border border-white/10 bg-navy-900/50 p-8 backdrop-blur-xl shadow-2xl">
+                          <h2 className="text-xl font-black text-white mb-6">Shipping Address</h2>
+                          <ShippingAddressForm value={shippingAddress} onChange={setShippingAddress} errors={shippingErrors} />
+                        </div>
+                      )}
+
+                      {/* Payment Method */}
+                      <div className="rounded-[2rem] border border-white/10 bg-navy-900/50 p-8 backdrop-blur-xl shadow-2xl">
+                        <h2 className="text-xl font-black text-white mb-6">Payment Method</h2>
+                        
+                        {/* Trust Signals */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                          {[
+                            { icon: "shield", text: "Secure SSL" },
+                            { icon: "check", text: "Verified" },
+                            { icon: "refresh", text: "Refundable" }
+                          ].map((t, i) => (
+                            <div key={i} className="flex items-center gap-2 rounded-2xl bg-success-500/10 border border-success-500/20 px-4 py-3 text-success-400">
+                              <Icon name={t.icon as any} size={16} />
+                              <span className="text-[10px] font-black uppercase tracking-widest">{t.text}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <PaymentMethodSelector 
+                          value={method} 
+                          onChange={setMethod}
+                          orderTotal={isCombined ? combinedTotal : isMerch ? cartTotal : order?.total}
+                          savingsApplied={savingsApplied}
+                        />
+
+                        {!isMerch && order && (
+                          <div className="mt-8 pt-8 border-t border-white/5">
+                            <PromoCodeInput
+                              eventId={order.eventId}
+                              onApply={(c, d) => { setPromoCode(c); setPromoDiscount(d); }}
+                              onRemove={() => { setPromoCode(''); setPromoDiscount(0); }}
+                              appliedCode={promoCode}
+                              appliedDiscount={promoDiscount}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Desktop Proceed Button */}
+                      <div className="hidden lg:block">
+                        <Button onClick={proceed} className="w-full h-16 text-lg font-black shadow-2xl shadow-primary-500/20" size="xl" disabled={processing}>
+                          {processing ? "Processing Experience..." : "Confirm & Pay"}
+                        </Button>
+                        <p className="mt-4 text-center text-xs text-navy-400 font-medium">
+                          Secure payment powered by <span className="text-white font-bold">Guestly Pay</span>
+                        </p>
+                      </div>
+                    </motion.div>
+
+                    {/* Right Column: Summary */}
+                    <motion.div 
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 }}
+                      className="lg:col-span-5 space-y-6"
+                    >
+                      {/* Savings Banner */}
+                      {savingsApplied > 0 && (
+                        <motion.div 
+                          initial={{ scale: 0.9, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          className="rounded-3xl bg-success-500/10 border border-success-500/20 p-6 flex gap-4"
+                        >
+                          <div className="h-12 w-12 shrink-0 rounded-2xl bg-success-500 flex items-center justify-center text-2xl">💰</div>
+                          <div>
+                            <p className="text-sm font-black text-white uppercase tracking-wider">Savings Applied!</p>
+                            <p className="text-xs text-success-400 font-medium mt-1">
+                              We&apos;ve used ${savingsApplied.toFixed(2)} from your savings target for this event.
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      <SummaryCard title="Order Summary" total={isCombined ? combinedTotal : isMerch ? cartTotal : (order?.total || 0)}>
+                        <AnimatePresence mode="popLayout">
+                          {isCombined && (
+                            <div className="space-y-6">
+                              {ticketItems.map((it, i) => (
+                                <div key={i} className="flex justify-between items-center group">
+                                  <div className="flex items-center gap-4">
+                                    <div className="h-12 w-12 rounded-2xl bg-primary-500/20 flex items-center justify-center text-xl">🎫</div>
+                                    <div>
+                                      <p className="text-sm font-black text-white">{it.eventTitle}</p>
+                                      <p className="text-[10px] font-black uppercase tracking-widest text-navy-400">{it.type} Ticket • ×{it.quantity}</p>
+                                    </div>
+                                  </div>
+                                  <span className="text-sm font-bold text-white">${(it.price * it.quantity).toFixed(2)}</span>
+                                </div>
+                              ))}
+                              {cartItems.map((it, i) => (
+                                <div key={i} className="flex justify-between items-center">
+                                  <div className="flex items-center gap-4">
+                                    <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center text-xl">{it.image}</div>
+                                    <div>
+                                      <p className="text-sm font-black text-white">{it.name}</p>
+                                      <p className="text-[10px] font-black uppercase tracking-widest text-navy-400">{it.size || 'One Size'} • ×{it.quantity}</p>
+                                    </div>
+                                  </div>
+                                  <span className="text-sm font-bold text-white">${(it.price * it.quantity).toFixed(2)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {!isCombined && isMerch && cartItems.map((it, i) => (
+                            <div key={i} className="flex justify-between items-center">
+                              <div className="flex items-center gap-4">
+                                <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center text-xl">{it.image}</div>
+                                <div>
+                                  <p className="text-sm font-black text-white">{it.name}</p>
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-navy-400">{it.size || 'One Size'} • ×{it.quantity}</p>
+                                </div>
+                              </div>
+                              <span className="text-sm font-bold text-white">${(it.price * it.quantity).toFixed(2)}</span>
+                            </div>
+                          ))}
+                          {!isCombined && !isMerch && order?.items.map((it, i) => (
+                            <div key={i} className="flex justify-between items-center">
+                              <div className="flex items-center gap-4">
+                                <div className="h-12 w-12 rounded-2xl bg-primary-500/20 flex items-center justify-center text-xl">🎫</div>
+                                <div>
+                                  <p className="text-sm font-black text-white">{it.type} Ticket</p>
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-navy-400">×{it.quantity}</p>
+                                </div>
+                              </div>
+                              <span className="text-sm font-bold text-white">${(it.price * it.quantity).toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </AnimatePresence>
+                      </SummaryCard>
+
+                      {/* Mobile Sticky Button */}
+                      <div className="lg:hidden sticky bottom-4 z-50">
+                        <Button onClick={proceed} className="w-full h-16 text-lg font-black shadow-3xl shadow-primary-500/40" size="xl" disabled={processing}>
+                          {processing ? "Processing..." : `Pay $${(isCombined ? combinedTotal : isMerch ? cartTotal : (order?.total || 0)).toFixed(2)}`}
+                        </Button>
+                      </div>
+                    </motion.div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </ProtectedRoute>
   );
@@ -679,13 +593,7 @@ function CheckoutContent() {
 
 export default function CheckoutPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="container flex items-center justify-center py-24">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-300 border-t-primary-600" />
-        </div>
-      }
-    >
+    <Suspense fallback={<div className="min-h-screen bg-navy-950" />}>
       <CheckoutContent />
     </Suspense>
   );

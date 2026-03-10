@@ -1,277 +1,153 @@
-'use client';
+"use client";
+import React from "react";
+import Link from "next/link";
+import Button from "@/components/ui/Button";
+import Icon from "@/components/ui/Icon";
+import { motion } from "framer-motion";
 
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Icon } from '@/components/ui/Icon';
-import Link from 'next/link';
-
-export default function VendorHomePage() {
+export default function VendorLandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-navy-50 to-white dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-[var(--surface-bg)] text-[var(--foreground)]">
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <h1 className="text-5xl font-bold mb-6 text-gray-900 dark:text-white">
-          Grow Your Business with Guestly
-        </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-          Connect with event organizers across Africa. Offer your services, 
-          manage bookings, and grow your vendor business on Africa's leading event platform.
-        </p>
-        <div className="flex gap-4 justify-center">
-          <Button href="/vendor/register" size="lg">
-            <Icon name="rocket" className="w-5 h-5 mr-2" />
-            Become a Vendor
-          </Button>
-          <Button href="/vendor/login" variant="outline" size="lg">
-            Vendor Login
-          </Button>
+      <section className="relative overflow-hidden py-24 lg:py-32">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute -left-1/4 -top-1/4 h-[600px] w-[600px] rounded-full bg-primary-500/10 blur-[120px]" />
+          <div className="absolute -right-1/4 bottom-0 h-[600px] w-[600px] rounded-full bg-success-500/10 blur-[120px]" />
+        </div>
+
+        <div className="container relative z-10 mx-auto px-4 text-center">
+          <div className="flex flex-col items-center max-w-4xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-2 rounded-full border border-success-500/30 bg-success-500/10 px-4 py-2 text-xs font-black uppercase tracking-widest text-success-600 dark:text-success-400 mb-8"
+            >
+              <Icon name="shopping-bag" size={14} />
+              The Premium Event Marketplace
+            </motion.div>
+            
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-5xl font-black leading-tight sm:text-7xl mb-8 text-[var(--foreground)]"
+            >
+              Get booked by <span className="text-gradient-blue">top organizers.</span>
+            </motion.h1>
+            
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-xl text-[var(--foreground-muted)] mb-12 max-w-2xl leading-relaxed"
+            >
+              Join Africa&apos;s most exclusive event service network. Show your portfolio, manage inquiries, and receive secure payments from vetted event creators.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="flex flex-wrap items-center justify-center gap-6"
+            >
+              <Button href="/vendor-auth/register" size="xl" glow className="min-w-[200px]">
+                List Your Business
+              </Button>
+              <Button href="/vendor-auth/login" variant="outline" size="xl" className="min-w-[200px] border-[var(--surface-border)] bg-[var(--surface-card)] text-[var(--foreground)] hover:bg-[var(--surface-hover)] dark:bg-white/5 dark:hover:bg-white/10">
+                Vendor Sign In
+              </Button>
+            </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
-          Why Partner with Guestly?
-        </h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          <Card className="p-6 text-center">
-            <div className="w-16 h-16 bg-navy-100 dark:bg-navy-900 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Icon name="users" className="w-8 h-8 text-navy-600 dark:text-navy-400" />
-            </div>
-            <h3 className="text-xl font-semibold mb-3">Access to Organizers</h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Connect with thousands of event organizers looking for quality vendors
-            </p>
-          </Card>
-
-          <Card className="p-6 text-center">
-            <div className="w-16 h-16 bg-success-100 dark:bg-success-900 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Icon name="calendar" className="w-8 h-8 text-success-600 dark:text-success-400" />
-            </div>
-            <h3 className="text-xl font-semibold mb-3">Manage Bookings</h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Streamline your booking process with our vendor management tools
-            </p>
-          </Card>
-
-          <Card className="p-6 text-center">
-            <div className="w-16 h-16 bg-warning-100 dark:bg-warning-900 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Icon name="chart" className="w-8 h-8 text-warning-600 dark:text-warning-400" />
-            </div>
-            <h3 className="text-xl font-semibold mb-3">Grow Your Revenue</h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Track performance and grow your business with detailed analytics
-            </p>
-          </Card>
-        </div>
-      </section>
-
-      {/* Vendor Categories */}
-      <section className="bg-gray-50 dark:bg-gray-800 py-16">
+      {/* Trust & Scale Section */}
+      <section className="py-24 bg-[var(--surface-card)]/30">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
-            Vendor Categories
-          </h2>
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {[
-              { icon: 'camera', name: 'Photography & Videography' },
-              { icon: 'music', name: 'Entertainment & DJs' },
-              { icon: 'palette', name: 'Decoration & Design' },
-              { icon: 'package', name: 'Catering & Food' },
-              { icon: 'location', name: 'Venues & Spaces' },
-              { icon: 'megaphone', name: 'Marketing & PR' },
-              { icon: 'users', name: 'Event Staff' },
-              { icon: 'sparkles', name: 'Other Services' },
-            ].map((category, index) => (
-              <Card key={index} className="p-4 text-center hover:shadow-lg transition-shadow">
-                <Icon name={category.icon as any} className="w-8 h-8 mx-auto mb-2 text-primary-600 dark:text-primary-400" />
-                <p className="text-sm font-medium">{category.name}</p>
-              </Card>
+              { 
+                icon: "shield", 
+                title: "Guaranteed Payments", 
+                desc: "Never chase a client again. Our escrow system ensures you get paid instantly upon service completion." 
+              },
+              { 
+                icon: "activity", 
+                title: "Smart Leads", 
+                desc: "Our AI matches your services with organizers actively planning events in your category and city." 
+              },
+              { 
+                icon: "star", 
+                title: "Verified Reviews", 
+                desc: "Build a premium reputation with verified feedback from professional event organizers." 
+              }
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
+                className="group relative flex flex-col items-center text-center p-8 rounded-[2.5rem] border border-[var(--surface-border)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] transition-all dark:bg-white/5"
+              >
+                <div className="h-16 w-16 rounded-2xl bg-primary-500/10 flex items-center justify-center text-primary-500 mb-8 transform transition-transform group-hover:scale-110 group-hover:rotate-3">
+                  <Icon name={item.icon as any} size={32} />
+                </div>
+                <h3 className="text-xl font-black text-[var(--foreground)] uppercase tracking-wider mb-4">{item.title}</h3>
+                <p className="text-[var(--foreground-muted)] leading-relaxed">{item.desc}</p>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
-          How It Works
-        </h2>
-        <div className="grid md:grid-cols-4 gap-8">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-navy-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
-              1
-            </div>
-            <h3 className="font-semibold mb-2">Create Profile</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Sign up and create your vendor profile with services and pricing
-            </p>
+      {/* Vendor categories section */}
+      <section className="py-24">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-black text-[var(--foreground)] uppercase tracking-[0.2em] mb-16">Who we support</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+            {[
+              { name: "Catering", icon: "zap" },
+              { name: "Photography", icon: "activity" },
+              { name: "Venue", icon: "location" },
+              { name: "Security", icon: "shield" },
+              { name: "Logistics", icon: "package" },
+              { name: "AV/Sound", icon: "zap" },
+            ].map((cat, i) => (
+              <motion.div
+                key={cat.name}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.05 }}
+                className="flex flex-col items-center gap-4 p-6 rounded-3xl border border-[var(--surface-border)] bg-[var(--surface-card)] dark:bg-white/5"
+              >
+                <div className="h-10 w-10 rounded-xl bg-[var(--surface-bg)] flex items-center justify-center text-primary-500">
+                  <Icon name={cat.icon as any} size={20} />
+                </div>
+                <span className="text-xs font-black uppercase tracking-widest text-[var(--foreground)]">{cat.name}</span>
+              </motion.div>
+            ))}
           </div>
-
-          <div className="text-center">
-            <div className="w-12 h-12 bg-navy-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
-              2
-            </div>
-            <h3 className="font-semibold mb-2">Get Discovered</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Organizers find you through our vendor marketplace
-            </p>
-          </div>
-
-          <div className="text-center">
-            <div className="w-12 h-12 bg-navy-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
-              3
-            </div>
-            <h3 className="font-semibold mb-2">Receive Bookings</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Accept booking requests and manage your calendar
-            </p>
-          </div>
-
-          <div className="text-center">
-            <div className="w-12 h-12 bg-navy-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
-              4
-            </div>
-            <h3 className="font-semibold mb-2">Deliver & Earn</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Provide your services and receive secure payments
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="bg-navy-600 dark:bg-navy-700 py-16 text-white">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold mb-2">5,000+</div>
-              <p className="text-navy-100">Events Serviced</p>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">500+</div>
-              <p className="text-navy-100">Active Vendors</p>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">$2M+</div>
-              <p className="text-navy-100">Vendor Earnings</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Subscription Plans */}
-      <section className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-4 text-gray-900 dark:text-white">
-          Flexible Subscription Plans
-        </h2>
-        <p className="text-center text-gray-600 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
-          Choose a plan that fits your business needs
-        </p>
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          <Card className="p-6 border-2 border-gray-200 dark:border-gray-700">
-            <h3 className="text-xl font-bold mb-2">Basic</h3>
-            <div className="text-3xl font-bold mb-4">$29<span className="text-lg text-gray-600 dark:text-gray-400">/mo</span></div>
-            <ul className="space-y-3 mb-6">
-              <li className="flex items-start gap-2">
-                <Icon name="check" className="w-5 h-5 text-success-500 mt-0.5" />
-                <span className="text-sm">Profile listing</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Icon name="check" className="w-5 h-5 text-success-500 mt-0.5" />
-                <span className="text-sm">Up to 10 bookings/month</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Icon name="check" className="w-5 h-5 text-success-500 mt-0.5" />
-                <span className="text-sm">Basic analytics</span>
-              </li>
-            </ul>
-            <Button href="/vendor/register" variant="outline" className="w-full">
-              Get Started
-            </Button>
-          </Card>
-
-          <Card className="p-6 border-2 border-primary-500 relative">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-              Popular
-            </div>
-            <h3 className="text-xl font-bold mb-2">Professional</h3>
-            <div className="text-3xl font-bold mb-4">$79<span className="text-lg text-gray-600 dark:text-gray-400">/mo</span></div>
-            <ul className="space-y-3 mb-6">
-              <li className="flex items-start gap-2">
-                <Icon name="check" className="w-5 h-5 text-success-500 mt-0.5" />
-                <span className="text-sm">Featured listing</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Icon name="check" className="w-5 h-5 text-success-500 mt-0.5" />
-                <span className="text-sm">Unlimited bookings</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Icon name="check" className="w-5 h-5 text-success-500 mt-0.5" />
-                <span className="text-sm">Advanced analytics</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Icon name="check" className="w-5 h-5 text-success-500 mt-0.5" />
-                <span className="text-sm">Priority support</span>
-              </li>
-            </ul>
-            <Button href="/vendor/register" className="w-full">
-              Get Started
-            </Button>
-          </Card>
-
-          <Card className="p-6 border-2 border-gray-200 dark:border-gray-700">
-            <h3 className="text-xl font-bold mb-2">Enterprise</h3>
-            <div className="text-3xl font-bold mb-4">Custom</div>
-            <ul className="space-y-3 mb-6">
-              <li className="flex items-start gap-2">
-                <Icon name="check" className="w-5 h-5 text-success-500 mt-0.5" />
-                <span className="text-sm">Everything in Pro</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Icon name="check" className="w-5 h-5 text-success-500 mt-0.5" />
-                <span className="text-sm">API access</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Icon name="check" className="w-5 h-5 text-success-500 mt-0.5" />
-                <span className="text-sm">Dedicated account manager</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Icon name="check" className="w-5 h-5 text-success-500 mt-0.5" />
-                <span className="text-sm">Custom integrations</span>
-              </li>
-            </ul>
-            <Button href="/vendor/register" variant="outline" className="w-full">
-              Contact Sales
-            </Button>
-          </Card>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="bg-gradient-to-r from-navy-600 to-primary-600 py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to Grow Your Business?
-          </h2>
-          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Join hundreds of vendors serving events across Lagos, Abuja, Accra, and Nairobi
+      <section className="py-24 container">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-[3rem] bg-gradient-to-br from-primary-600 to-primary-800 p-12 text-center text-white"
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent_50%)]" />
+          <h2 className="relative text-4xl font-black mb-6">Ready to scale your business?</h2>
+          <p className="relative text-lg text-primary-50 mb-10 max-w-2xl mx-auto font-medium">
+            Join the elite network of service providers powering Africa&apos;s most memorable experiences.
           </p>
-          <Button href="/vendor/register" size="lg" className="bg-white text-navy-600 hover:bg-gray-100">
-            Start Your Vendor Journey
+          <Button href="/vendor-auth/register" size="xl" className="relative bg-white text-primary-700 hover:bg-primary-50 shadow-2xl">
+            Register as a Vendor
           </Button>
-        </div>
+        </motion.div>
       </section>
-
-      {/* Footer */}
-      <footer className="container mx-auto px-4 py-8 text-center text-gray-600 dark:text-gray-400">
-        <p>
-          Already a vendor?{' '}
-          <Link href="/vendor/login" className="text-primary-600 dark:text-primary-400 hover:underline">
-            Login here
-          </Link>
-        </p>
-      </footer>
     </div>
   );
 }
