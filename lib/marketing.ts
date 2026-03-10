@@ -6250,6 +6250,11 @@ export function listBlogPosts(organizerId: string): BlogPost[] {
     .sort((a, b) => b.createdAt - a.createdAt);
 }
 
+export function getAllBlogPosts(): BlogPost[] {
+  return Object.values(blogPosts)
+    .sort((a, b) => b.createdAt - a.createdAt);
+}
+
 export function publishBlogPost(postId: string): BlogPost | null {
   const post = blogPosts[postId];
   if (!post) return null;
