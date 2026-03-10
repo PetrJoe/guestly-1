@@ -516,21 +516,6 @@ const icons: Record<IconName, (props: React.SVGProps<SVGSVGElement>) => React.JS
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" />
     </svg>
   ),
-  package: (props) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
-    </svg>
-  ),
-  ticket: (props) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-12v.75m0 3v.75m0 3v.75m0 3V18M3 8.25a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 8.25V15.75a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15.75V8.25Z" />
-    </svg>
-  ),
-  money: (props) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.197c.816.196 1.578-.311 1.578-1.102V10.274c0-.507-.311-.959-.784-1.143a60.09 60.09 0 0 1-15.797-2.197m15.797 2.197V3.75a.75.75 0 0 0-1.5 0v1.734c-1.332-.204-2.684-.336-4.053-.395m4.053.395a60.28 60.28 0 0 1-15.797 2.197M3 19.5V6.75A.75.75 0 0 0 1.5 6.75v12.75a.75.75 0 0 0 1.5 0ZM6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm0 4.5a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
-    </svg>
-  ),
   "chevron-left": (props) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
@@ -689,3 +674,24 @@ const icons: Record<IconName, (props: React.SVGProps<SVGSVGElement>) => React.JS
     </svg>
   ),
 };
+
+function Icon({ name, className = "", size = 20 }: IconProps) {
+  const IconComponent = icons[name];
+  
+  if (!IconComponent) {
+    console.warn(`Icon "${name}" not found`);
+    return null;
+  }
+
+  return (
+    <IconComponent
+      className={className}
+      width={size}
+      height={size}
+      aria-hidden="true"
+    />
+  );
+}
+
+export { Icon };
+export default Icon;
