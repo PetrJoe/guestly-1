@@ -112,7 +112,7 @@ export default function EventCommunityPage({ params }: { params: Promise<{ id: s
               required
             />
             <Button type="submit">
-              <Icon name="send" className="w-4 h-4 mr-2" />
+              <Icon name="arrow-right" className="w-4 h-4 mr-2" />
               Post Message
             </Button>
           </form>
