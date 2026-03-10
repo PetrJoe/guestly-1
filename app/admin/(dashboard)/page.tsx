@@ -85,7 +85,6 @@ export default function AdminDashboard() {
                 { label: "Art", value: 150000 },
                 { label: "Food", value: 280000 },
               ]}
-              color="#248232"
             />
           </div>
         </Card>
