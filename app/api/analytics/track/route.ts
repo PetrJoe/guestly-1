@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { source, medium, campaign, content, term } = body;
+    const { source, medium, campaign, content, term, sessionId, landingPage } = body;
 
     if (!source || !medium) {
       return NextResponse.json(
@@ -22,7 +22,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    trackAttribution(userId, source, medium, campaign, content, term);
+    trackAttribution(userId, sessionId || userId, {
+      source,
+      medium,
+      campaign: campaign || '',
+      content,
+      term,
+      landingPage: landingPage || '/'
+    });
 
     return NextResponse.json({
       success: true,
