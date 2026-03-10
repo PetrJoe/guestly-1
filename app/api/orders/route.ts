@@ -9,7 +9,7 @@ function getUserIdFromCookies(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const eventId: string = body?.eventId;
-  const items: Array<{ type: "General" | "VIP"; quantity: number }> = body?.items || [];
+  const items: Array<{ type: "General" | "VIP"; quantity: number; attendanceType?: "physical" | "virtual" }> = body?.items || [];
   if (!eventId || items.length === 0) {
     return NextResponse.json({ ok: false, error: "Invalid body" }, { status: 400 });
   }

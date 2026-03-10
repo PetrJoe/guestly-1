@@ -1,132 +1,171 @@
-"use client";
-import React from "react";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
+'use client';
 
-type Post = {
+import { use, useState, useEffect } from 'react';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Icon';
+import { useRouter } from 'next/navigation';
+
+interface Event {
   id: string;
-  author: string;
+  title: string;
+}
+
+interface Discussion {
+  id: string;
+  userId: string;
+  userName: string;
   message: string;
-  createdAt: number;
-  likes: number;
-};
+  timestamp: number;
+  replies: number;
+}
 
-export default function EventCommunity({ params }: { params: { id: string } }) {
-  const eventId = params.id;
-  const [posts, setPosts] = React.useState<Post[]>([]);
-  const [message, setMessage] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState("");
+export default function EventCommunityPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const router = useRouter();
+  const [event, setEvent] = useState<Event | null>(null);
+  const [discussions, setDiscussions] = useState<Discussion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newMessage, setNewMessage] = useState('');
 
-  async function load() {
-    const res = await fetch(`/api/events/${eventId}/community`, { cache: "no-store" });
-    const data = await res.json();
-    if (res.ok) setPosts(data.data as Post[]);
-  }
+  useEffect(() => {
+    fetchEvent();
+    fetchDiscussions();
+  }, [id]);
 
-  React.useEffect(() => {
-    void load();
-  }, [eventId]);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    if (!message.trim()) return;
-    setLoading(true);
+  const fetchEvent = async () => {
     try {
-      const res = await fetch(`/api/events/${eventId}/community`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
-      });
-      const data = await res.json();
-      if (res.ok && data.ok) {
-        setMessage("");
-        await load();
-      } else {
-        setError(data.error || "Failed to post");
+      const response = await fetch(`/api/events/${id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setEvent(data.event);
       }
-    } catch {
-      setError("Failed to post");
+    } catch (error) {
+      console.error('Failed to fetch event:', error);
+    }
+  };
+
+  const fetchDiscussions = async () => {
+    try {
+      const response = await fetch(`/api/events/${id}/discussions`);
+      if (response.ok) {
+        const data = await response.json();
+        setDiscussions(data.discussions || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch discussions:', error);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  function timeAgo(ts: number) {
-    const diff = Math.floor((Date.now() - ts) / 1000);
-    if (diff < 60) return `${diff}s ago`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
-  }
+  const handlePostMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
+
+    try {
+      const response = await fetch(`/api/events/${id}/discussions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: newMessage }),
+      });
+
+      if (response.ok) {
+        setNewMessage('');
+        fetchDiscussions();
+      }
+    } catch (error) {
+      console.error('Failed to post message:', error);
+    }
+  };
 
   return (
-    <ProtectedRoute allowRoles={["attendee", "organiser", "vendor"]}>
-      <div className="container py-8">
-        <div className="mb-6">
-          <h1 className="text-xl font-bold tracking-tight text-neutral-900 sm:text-2xl">
-            Event Community
-          </h1>
-          <p className="mt-1 text-sm text-neutral-500">Discuss plans, ask questions, and connect with others.</p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-4xl mx-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            onClick={() => router.push(`/events/${id}`)}
+            className="flex items-center gap-2"
+          >
+            <Icon name="arrow-left" className="w-4 h-4" />
+            Back to Event
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">{event?.title || 'Event'} Community</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Connect with other attendees and discuss the event
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2 flex flex-col gap-4">
-            <Card>
-              <form onSubmit={submit} className="flex flex-col gap-3">
-                <textarea
-                  className="min-h-[90px] w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
-                  placeholder="Share your thoughts or ask a question…"
-                  value={message}
-                  onChange={(e) => setMessage(e.currentTarget.value)}
-                />
-                {error && <div className="text-xs text-red-600">{error}</div>}
-                <div className="flex justify-end">
-                  <Button type="submit" disabled={loading || !message.trim()}>
-                    {loading ? "Posting…" : "Post"}
-                  </Button>
-                </div>
-              </form>
-            </Card>
+        {/* Post New Message */}
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold mb-4">Start a Discussion</h2>
+          <form onSubmit={handlePostMessage} className="space-y-4">
+            <textarea
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Share your thoughts, ask questions, or connect with other attendees..."
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white min-h-[120px]"
+              required
+            />
+            <Button type="submit">
+              <Icon name="send" className="w-4 h-4 mr-2" />
+              Post Message
+            </Button>
+          </form>
+        </Card>
 
-            {posts.length === 0 ? (
-              <div className="rounded-xl border border-neutral-200 bg-white p-6 text-center text-sm text-neutral-500">
-                No posts yet. Be the first to start a discussion.
-              </div>
-            ) : (
-              posts.map((p) => (
-                <Card key={p.id}>
-                  <div className="flex items-start gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700">
-                      {p.author.charAt(0)}
-                    </span>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-neutral-900">{p.author}</span>
-                        <span className="text-xs text-neutral-400">{timeAgo(p.createdAt)}</span>
-                      </div>
-                      <p className="mt-1 text-sm text-neutral-700 whitespace-pre-wrap">{p.message}</p>
+        {/* Discussions */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Recent Discussions</h2>
+          
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <span className="text-4xl animate-spin">🔄</span>
+            </div>
+          ) : discussions.length === 0 ? (
+            <Card className="p-12 text-center">
+              <span className="text-6xl mb-4 block">💬</span>
+              <h3 className="text-xl font-semibold mb-2">No discussions yet</h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Be the first to start a conversation!
+              </p>
+            </Card>
+          ) : (
+            discussions.map((discussion) => (
+              <Card key={discussion.id} className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-primary-600 dark:text-primary-400 font-semibold">
+                    {discussion.userName.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-semibold">{discussion.userName}</span>
+                      <span className="text-sm text-gray-500">
+                        {new Date(discussion.timestamp).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="text-gray-900 dark:text-white mb-3">{discussion.message}</p>
+                    <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                      <button className="flex items-center gap-1 hover:text-primary-600">
+                        <Icon name="message-circle" className="w-4 h-4" />
+                        {discussion.replies} replies
+                      </button>
+                      <button className="flex items-center gap-1 hover:text-primary-600">
+                        <Icon name="heart" className="w-4 h-4" />
+                        Like
+                      </button>
                     </div>
                   </div>
-                </Card>
-              ))
-            )}
-          </div>
-
-          <div className="hidden lg:block">
-            <div className="rounded-xl border border-neutral-200 bg-white p-5">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-400">Tips</h3>
-              <ul className="list-disc pl-5 text-xs text-neutral-600">
-                <li>Be respectful and stay on topic</li>
-                <li>Use this space to coordinate and ask questions</li>
-              </ul>
-            </div>
-          </div>
+                </div>
+              </Card>
+            ))
+          )}
         </div>
       </div>
-    </ProtectedRoute>
+    </div>
   );
 }
-

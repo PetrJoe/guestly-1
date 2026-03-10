@@ -1,203 +1,279 @@
 "use client";
-import React from "react";
 
-// ── Icons ────────────────────────────────────────────────────────────────────
-
-function CheckCircleIcon() {
-  return (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  );
-}
-
-function BarChartIcon() {
-  return (
-    <svg className="h-10 w-10 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-      <path d="M18 20V10M12 20V4M6 20v-6" />
-    </svg>
-  );
-}
-
-// ── Types ────────────────────────────────────────────────────────────────────
-
-interface PollOption {
-  id: string;
-  label: string;
-  votes: number;
-}
-
-interface Poll {
-  id: string;
-  question: string;
-  options: PollOption[];
-  createdAt: number;
-  closed: boolean;
-}
+import { useState, useEffect } from "react";
+import type { Poll } from "@/lib/store";
+import PieChart from "@/components/charts/PieChart";
+import { getSocket } from "@/lib/websocket";
+import type { PollCreatedEvent, PollVotedEvent, PollClosedEvent } from "@/lib/websocket";
 
 interface PollPanelProps {
   eventId: string;
-  userId: string;
+  userId?: string;
 }
 
-// ── Mock polls for UI demo ──────────────────────────────────────────────────
+type ViewMode = 'bars' | 'chart';
 
-const DEMO_POLLS: Poll[] = [
-  {
-    id: "poll-1",
-    question: "What topic should we cover next?",
-    options: [
-      { id: "o1", label: "AI & Machine Learning", votes: 24 },
-      { id: "o2", label: "Web3 & Blockchain", votes: 18 },
-      { id: "o3", label: "Mobile Development", votes: 12 },
-      { id: "o4", label: "Cloud Infrastructure", votes: 9 },
-    ],
-    createdAt: Date.now() - 300_000,
-    closed: false,
-  },
-  {
-    id: "poll-2",
-    question: "How are you enjoying the event?",
-    options: [
-      { id: "o5", label: "🔥 Amazing!", votes: 42 },
-      { id: "o6", label: "👍 Pretty good", votes: 28 },
-      { id: "o7", label: "😐 It's okay", votes: 5 },
-    ],
-    createdAt: Date.now() - 900_000,
-    closed: true,
-  },
-];
-
-// ── Component ────────────────────────────────────────────────────────────────
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function PollPanel({ eventId, userId }: PollPanelProps) {
-  const [polls, setPolls] = React.useState<Poll[]>(DEMO_POLLS);
-  const [votedPolls, setVotedPolls] = React.useState<Record<string, string>>({});
+  const [polls, setPolls] = useState<Poll[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [votedPolls, setVotedPolls] = useState<Set<string>>(new Set());
+  const [viewMode, setViewMode] = useState<Record<string, ViewMode>>({});
+  const [animatingVotes, setAnimatingVotes] = useState<Set<string>>(new Set());
 
-  function vote(pollId: string, optionId: string) {
-    if (votedPolls[pollId]) return; // already voted
+  useEffect(() => {
+    fetchPolls();
 
-    setVotedPolls((prev) => ({ ...prev, [pollId]: optionId }));
-    setPolls((prev) =>
-      prev.map((p) =>
-        p.id === pollId
-          ? {
-            ...p,
-            options: p.options.map((o) =>
-              o.id === optionId ? { ...o, votes: o.votes + 1 } : o
-            ),
-          }
-          : p
-      )
+    // Set up WebSocket listeners for real-time updates
+    const socket = getSocket();
+    
+    socket.emit("join-event", { eventId, userId: userId || "guest", userName: "User" });
+
+    const handlePollCreated = (data: PollCreatedEvent) => {
+      setPolls((prev) => [data.poll, ...prev]);
+    };
+
+    const handlePollVoted = (data: PollVotedEvent) => {
+      // Trigger animation for vote update
+      setAnimatingVotes((prev) => new Set(prev).add(data.pollId));
+      
+      setPolls((prev) =>
+        prev.map((p) => (p.id === data.pollId ? data.poll : p))
+      );
+
+      // Remove animation flag after animation completes
+      setTimeout(() => {
+        setAnimatingVotes((prev) => {
+          const next = new Set(prev);
+          next.delete(data.pollId);
+          return next;
+        });
+      }, 800);
+    };
+
+    const handlePollClosed = (data: PollClosedEvent) => {
+      setPolls((prev) =>
+        prev.map((p) => (p.id === data.pollId ? { ...p, closedAt: Date.now() } : p))
+      );
+    };
+
+    socket.on("poll-created", handlePollCreated);
+    socket.on("poll-voted", handlePollVoted);
+    socket.on("poll-closed", handlePollClosed);
+
+    return () => {
+      socket.off("poll-created", handlePollCreated);
+      socket.off("poll-voted", handlePollVoted);
+      socket.off("poll-closed", handlePollClosed);
+    };
+  }, [eventId, userId]);
+
+  const fetchPolls = async () => {
+    try {
+      const res = await fetch(`/api/events/${eventId}/polls`);
+      const data = await res.json();
+      if (data.success) {
+        setPolls(data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch polls:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVote = async (pollId: string, optionId: string) => {
+    if (!userId || votedPolls.has(pollId)) return;
+
+    try {
+      const res = await fetch(`/api/events/${eventId}/polls/${pollId}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ optionId }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        // Update the poll with new vote counts
+        setPolls((prev) =>
+          prev.map((p) => (p.id === pollId ? data.data : p))
+        );
+        setVotedPolls((prev) => new Set(prev).add(pollId));
+        
+        // Trigger animation
+        setAnimatingVotes((prev) => new Set(prev).add(pollId));
+        setTimeout(() => {
+          setAnimatingVotes((prev) => {
+            const next = new Set(prev);
+            next.delete(pollId);
+            return next;
+          });
+        }, 800);
+      } else {
+        alert(data.error || "Failed to vote");
+      }
+    } catch (error) {
+      console.error("Failed to vote:", error);
+      alert("Failed to vote");
+    }
+  };
+
+  const toggleViewMode = (pollId: string) => {
+    setViewMode((prev) => ({
+      ...prev,
+      [pollId]: prev[pollId] === 'chart' ? 'bars' : 'chart'
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div className="p-4 text-center text-foreground-muted">
+        Loading polls...
+      </div>
     );
-  }
-
-  function totalVotes(poll: Poll) {
-    return poll.options.reduce((sum, o) => sum + o.votes, 0);
-  }
-
-  function pct(votes: number, total: number) {
-    if (total === 0) return 0;
-    return Math.round((votes / total) * 100);
   }
 
   if (polls.length === 0) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-        <BarChartIcon />
-        <div>
-          <p className="text-sm font-medium text-neutral-700">No polls yet</p>
-          <p className="mt-0.5 text-xs text-neutral-400">
-            The host hasn&apos;t created any polls for this event.
-          </p>
-        </div>
+      <div className="p-4 text-center text-foreground-muted">
+        No polls yet
       </div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto">
-      <div className="space-y-4 p-4">
-        {polls.map((poll) => {
-          const total = totalVotes(poll);
-          const voted = votedPolls[poll.id];
-          const showResults = !!voted || poll.closed;
+    <div className="space-y-4 p-4">
+      {polls.map((poll) => {
+        const totalVotes = poll.options.reduce((sum, opt) => sum + opt.votes, 0);
+        const hasVoted = votedPolls.has(poll.id);
+        const isClosed = !!poll.closedAt;
+        const isAnimating = animatingVotes.has(poll.id);
+        const currentViewMode = viewMode[poll.id] || 'bars';
 
-          return (
-            <div
-              key={poll.id}
-              className="rounded-xl border border-neutral-100 bg-neutral-50/50 p-4"
-            >
-              {/* Question */}
-              <div className="mb-3 flex items-start justify-between gap-2">
-                <h4 className="text-sm font-semibold text-neutral-900">{poll.question}</h4>
-                {poll.closed && (
-                  <span className="shrink-0 rounded-full bg-neutral-200 px-2 py-0.5 text-[10px] font-medium text-neutral-500">
-                    Closed
-                  </span>
-                )}
+        return (
+          <div
+            key={poll.id}
+            className={`rounded-lg border border-surface-border bg-surface-card p-4 transition-all duration-300 ${
+              isAnimating ? 'ring-2 ring-primary-500 ring-opacity-50' : ''
+            }`}
+          >
+            <div className="mb-3 flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="font-semibold text-foreground">{poll.question}</h3>
+                <p className="text-sm text-foreground-muted">
+                  <span className={`font-medium ${isAnimating ? 'animate-pulse text-primary-500' : ''}`}>
+                    {totalVotes}
+                  </span>{" "}
+                  {totalVotes === 1 ? "vote" : "votes"}
+                  {isClosed && " • Closed"}
+                </p>
               </div>
+              
+              {/* View mode toggle */}
+              {totalVotes > 0 && (
+                <button
+                  onClick={() => toggleViewMode(poll.id)}
+                  className="ml-2 rounded-md border border-surface-border bg-surface-bg px-3 py-1 text-xs font-medium text-foreground-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+                  title={currentViewMode === 'bars' ? 'Show chart view' : 'Show bar view'}
+                >
+                  {currentViewMode === 'bars' ? (
+                    <span className="flex items-center gap-1">
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                      </svg>
+                      Chart
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1">
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      Bars
+                    </span>
+                  )}
+                </button>
+              )}
+            </div>
 
-              {/* Options */}
+            {currentViewMode === 'bars' ? (
+              // Bar view with voting
               <div className="space-y-2">
                 {poll.options.map((option) => {
-                  const percentage = pct(option.votes, total);
-                  const isSelected = voted === option.id;
-
-                  if (showResults) {
-                    return (
-                      <div key={option.id} className="relative overflow-hidden rounded-lg">
-                        {/* Bar background */}
-                        <div
-                          className={`absolute inset-0 rounded-lg transition-all duration-500 ${isSelected ? "bg-primary-100" : "bg-neutral-100"
-                            }`}
-                          style={{ width: `${percentage}%` }}
-                        />
-                        {/* Content */}
-                        <div className="relative flex items-center justify-between px-3 py-2">
-                          <div className="flex items-center gap-2">
-                            {isSelected && (
-                              <span className="text-primary-600">
-                                <CheckCircleIcon />
-                              </span>
-                            )}
-                            <span
-                              className={`text-sm ${isSelected ? "font-medium text-primary-700" : "text-neutral-700"
-                                }`}
-                            >
-                              {option.label}
-                            </span>
-                          </div>
-                          <span className="text-xs font-semibold text-neutral-500">
-                            {percentage}%
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  }
+                  const percentage =
+                    totalVotes > 0 ? Math.round((option.votes / totalVotes) * 100) : 0;
 
                   return (
                     <button
                       key={option.id}
-                      onClick={() => vote(poll.id, option.id)}
-                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-left text-sm text-neutral-700 transition hover:border-primary-300 hover:bg-primary-50"
+                      onClick={() => handleVote(poll.id, option.id)}
+                      disabled={!userId || hasVoted || isClosed}
+                      className="relative w-full overflow-hidden rounded-md border border-surface-border bg-surface-bg p-3 text-left transition-all hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {option.label}
+                      {/* Progress bar background with animation */}
+                      <div
+                        className={`absolute inset-0 bg-primary-100 transition-all ${
+                          isAnimating ? 'duration-500' : 'duration-700'
+                        }`}
+                        style={{ 
+                          width: `${percentage}%`,
+                          transition: `width ${isAnimating ? '0.5s' : '0.7s'} cubic-bezier(0.34, 1.56, 0.64, 1)`
+                        }}
+                      />
+
+                      {/* Content */}
+                      <div className="relative flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-foreground">
+                            {option.text}
+                          </span>
+                          {hasVoted && option.votes > 0 && (
+                            <span className="text-xs text-foreground-muted">
+                              ({option.votes} {option.votes === 1 ? 'vote' : 'votes'})
+                            </span>
+                          )}
+                        </div>
+                        <span className={`text-sm font-semibold text-foreground-muted tabular-nums ${
+                          isAnimating ? 'animate-pulse text-primary-600' : ''
+                        }`}>
+                          {percentage}%
+                        </span>
+                      </div>
                     </button>
                   );
                 })}
               </div>
+            ) : (
+              // Chart view
+              <div className="py-4">
+                <PieChart
+                  data={poll.options.map((option) => ({
+                    label: option.text,
+                    value: option.votes
+                  }))}
+                  size={240}
+                  animated={true}
+                  gradient={true}
+                />
+              </div>
+            )}
 
-              {/* Footer */}
-              <p className="mt-2.5 text-[11px] text-neutral-400">
-                {total} vote{total !== 1 ? "s" : ""}
-                {showResults && voted && " · You voted"}
+            {!userId && (
+              <p className="mt-3 text-sm text-foreground-muted">
+                Sign in to vote
               </p>
-            </div>
-          );
-        })}
-      </div>
+            )}
+            
+            {hasVoted && !isClosed && (
+              <p className="mt-3 flex items-center gap-1 text-sm text-success-600">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                You voted
+              </p>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

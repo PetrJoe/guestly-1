@@ -41,20 +41,20 @@ export default function LoginPage() {
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-xl font-bold tracking-tight text-neutral-900">Welcome back</h1>
-        <p className="mt-1 text-sm text-neutral-500">Sign in to your Guestly account</p>
+        <h1 className="text-xl font-bold tracking-tight text-[var(--foreground)]">Welcome back</h1>
+        <p className="mt-1 text-sm text-[var(--foreground-muted)]">Sign in to your Guestly account</p>
       </div>
 
       {/* Role toggle */}
-      <div className="flex rounded-lg bg-neutral-100 p-1">
+      <div className="flex rounded-xl bg-[var(--surface-bg)] border border-[var(--surface-border)] p-1">
         {(["attendee", "organiser"] as const).map((r) => (
           <button
             key={r}
             type="button"
             onClick={() => setRole(r)}
-            className={`flex-1 rounded-md py-2 text-xs font-semibold transition-all duration-200 ${role === r
-              ? "bg-white text-neutral-900 shadow-sm ring-1 ring-black/5"
-              : "text-neutral-500 hover:bg-white/50 hover:text-neutral-700"
+            className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all duration-200 ${role === r
+              ? "bg-[var(--surface-card)] text-[var(--foreground)] shadow-sm ring-1 ring-[var(--surface-border)]"
+              : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
               }`}
           >
             {r === "attendee" ? "Attendee" : "Organiser"}
@@ -64,7 +64,7 @@ export default function LoginPage() {
 
       {/* Error */}
       {error && (
-        <div className="rounded-lg bg-red-50 px-4 py-3 text-xs text-red-600">
+        <div className="rounded-xl bg-danger-50 border border-danger-200 px-4 py-3 text-xs text-danger-600">
           {error}
         </div>
       )}
@@ -108,7 +108,7 @@ export default function LoginPage() {
       </form>
 
       {/* Footer */}
-      <p className="text-center text-xs text-neutral-500">
+      <p className="text-center text-xs text-[var(--foreground-muted)]">
         Don&apos;t have an account?{" "}
         <Link href="/register" className="font-medium text-primary-600 hover:text-primary-700">
           Create one

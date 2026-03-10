@@ -8,6 +8,10 @@ function userId(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   const w = ensureWallet(userId(req));
-  return NextResponse.json({ ok: true, balance: w.balance });
+  return NextResponse.json({ 
+    ok: true, 
+    balance: w.balance,
+    promoBalance: w.promoBalance || 0
+  });
 }
 

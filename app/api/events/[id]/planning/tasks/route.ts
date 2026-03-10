@@ -11,10 +11,21 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
   const title: string = body?.title || "";
-  const owner: string | undefined = body?.owner;
+  const description: string | undefined = body?.description;
+  const category: "marketing" | "logistics" | "technical" | "content" | undefined = body?.category;
+  const assignee: string | undefined = body?.assignee;
+  const owner: string | undefined = body?.owner; // Backward compatibility
   const dueDate: string | undefined = body?.dueDate;
   if (!title.trim()) return NextResponse.json({ ok: false, error: "Title required" }, { status: 400 });
-  const task = addPlanningTask(id, { title: title.trim(), owner, dueDate, status: "todo" });
+  const task = addPlanningTask(id, { 
+    title: title.trim(), 
+    description, 
+    category, 
+    assignee: assignee || owner, 
+    owner: assignee || owner, 
+    dueDate, 
+    status: "todo" 
+  });
   return NextResponse.json({ ok: true, data: task });
 }
 
@@ -25,7 +36,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const patch: Partial<PlanningTask> = {};
   if (body?.status) patch.status = body.status;
   if (body?.title) patch.title = body.title;
-  if (body?.owner !== undefined) patch.owner = body.owner;
+  if (body?.description !== undefined) patch.description = body.description;
+  if (body?.category !== undefined) patch.category = body.category;
+  if (body?.assignee !== undefined) {
+    patch.assignee = body.assignee;
+    patch.owner = body.assignee; // Keep owner in sync for backward compatibility
+  }
+  if (body?.owner !== undefined) {
+    patch.owner = body.owner;
+    patch.assignee = body.owner; // Keep assignee in sync
+  }
   if (body?.dueDate !== undefined) patch.dueDate = body.dueDate;
   if (!taskId) return NextResponse.json({ ok: false, error: "taskId required" }, { status: 400 });
   try {

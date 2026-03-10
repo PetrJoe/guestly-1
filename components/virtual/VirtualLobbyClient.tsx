@@ -8,6 +8,45 @@ import PollPanel from "./PollPanel";
 import { Event } from "@/lib/events";
 import Button from "@/components/ui/Button";
 
+// ── Countdown Hook ───────────────────────────────────────────────────────────
+
+function useCountdown(targetDate: string) {
+  const [timeLeft, setTimeLeft] = React.useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    isLive: false,
+  });
+
+  React.useEffect(() => {
+    const calculateTimeLeft = () => {
+      const target = new Date(targetDate).getTime();
+      const now = Date.now();
+      const difference = target - now;
+
+      if (difference <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isLive: true });
+        return;
+      }
+
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      setTimeLeft({ days, hours, minutes, seconds, isLive: false });
+    };
+
+    calculateTimeLeft();
+    const interval = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(interval);
+  }, [targetDate]);
+
+  return timeLeft;
+}
+
 // ── Icons ────────────────────────────────────────────────────────────────────
 
 function ArrowLeftIcon() {
@@ -60,6 +99,7 @@ export default function VirtualLobbyClient({ event }: VirtualLobbyClientProps) {
   const [loading, setLoading] = React.useState(true);
   const [activeTab, setActiveTab] = React.useState<SideTab>("chat");
   const [mobileSideOpen, setMobileSideOpen] = React.useState(false);
+  const countdown = useCountdown(event.date);
 
   React.useEffect(() => {
     async function loadUser() {
@@ -84,6 +124,13 @@ export default function VirtualLobbyClient({ event }: VirtualLobbyClientProps) {
     }
     loadUser();
   }, [router]);
+
+  // Redirect to stream page when event goes live
+  React.useEffect(() => {
+    if (countdown.isLive) {
+      router.push(`/events/${event.id}/stream`);
+    }
+  }, [countdown.isLive, event.id, router]);
 
   if (loading) {
     return (
@@ -124,9 +171,11 @@ export default function VirtualLobbyClient({ event }: VirtualLobbyClientProps) {
             {event.title}
           </h1>
 
-          <span className="flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold tracking-wide text-red-600">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />
-            LIVE
+          <span className="flex items-center gap-1 rounded-full bg-primary-50 px-2 py-0.5 text-[11px] font-bold tracking-wide text-primary-600">
+            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            LOBBY
           </span>
         </div>
 
@@ -162,9 +211,39 @@ export default function VirtualLobbyClient({ event }: VirtualLobbyClientProps) {
         {/* ── Main: Stream + About ────────────────────────────────────────── */}
         <main className="flex flex-1 flex-col overflow-y-auto p-4 sm:p-6">
           <div className="mx-auto w-full max-w-5xl space-y-5">
-            <StreamEmbed title={event.title} />
+            {/* Countdown Card */}
+            <div className="rounded-2xl border border-neutral-100 bg-gradient-to-br from-primary-50 to-white p-8 shadow-sm sm:p-10">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-neutral-900 sm:text-3xl">
+                  Event Starts In
+                </h2>
+                <div className="mt-6 grid grid-cols-4 gap-3 sm:gap-4">
+                  {[
+                    { label: "Days", value: countdown.days },
+                    { label: "Hours", value: countdown.hours },
+                    { label: "Minutes", value: countdown.minutes },
+                    { label: "Seconds", value: countdown.seconds },
+                  ].map((unit) => (
+                    <div
+                      key={unit.label}
+                      className="flex flex-col items-center justify-center rounded-xl bg-white p-4 shadow-sm"
+                    >
+                      <div className="text-3xl font-bold text-primary-600 sm:text-4xl">
+                        {String(unit.value).padStart(2, "0")}
+                      </div>
+                      <div className="mt-1 text-xs font-medium text-neutral-500 sm:text-sm">
+                        {unit.label}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-6 text-sm text-neutral-600">
+                  The stream will start automatically when the countdown reaches zero
+                </p>
+              </div>
+            </div>
 
-            {/* About card */}
+            {/* Event Details Card */}
             <div className="rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm sm:p-6">
               <h2 className="text-base font-semibold text-neutral-900">About this event</h2>
               <p className="mt-2 text-sm leading-relaxed text-neutral-600">{event.description}</p>
@@ -177,6 +256,65 @@ export default function VirtualLobbyClient({ event }: VirtualLobbyClientProps) {
                 <div className="flex items-center gap-2 text-sm text-neutral-500">
                   <MapPinIcon />
                   <span>{event.city} · Virtual</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Event Agenda Card (if available) */}
+            <div className="rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="text-base font-semibold text-neutral-900">Event Agenda</h2>
+              <div className="mt-4 space-y-3">
+                <div className="flex gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-semibold text-primary-700">
+                    1
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-neutral-900">Opening Remarks</h3>
+                    <p className="text-xs text-neutral-500">Welcome and introduction to the event</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-semibold text-primary-700">
+                    2
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-neutral-900">Main Presentation</h3>
+                    <p className="text-xs text-neutral-500">Featured speakers and content</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-semibold text-primary-700">
+                    3
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-neutral-900">Q&A Session</h3>
+                    <p className="text-xs text-neutral-500">Interactive questions and answers</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-semibold text-primary-700">
+                    4
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-neutral-900">Closing Remarks</h3>
+                    <p className="text-xs text-neutral-500">Wrap-up and next steps</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Pre-Event Instructions */}
+            <div className="rounded-2xl border border-primary-200 bg-primary-50 p-5 shadow-sm sm:p-6">
+              <div className="flex items-start gap-3">
+                <svg className="h-5 w-5 shrink-0 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold text-primary-900">Getting Ready</h3>
+                  <p className="mt-1 text-sm text-primary-700">
+                    While you wait, feel free to chat with other attendees in the chat panel. 
+                    Make sure your audio is working and you're in a comfortable viewing environment.
+                  </p>
                 </div>
               </div>
             </div>

@@ -12,8 +12,10 @@ export default function SearchBar({
   value,
   onChange,
   onSearch,
-  placeholder = "Search events, cities, categories\u2026",
+  placeholder = "Search events, cities, categories…",
 }: Props) {
+  const [isFocused, setIsFocused] = React.useState(false);
+
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter") onSearch?.();
   }
@@ -22,7 +24,9 @@ export default function SearchBar({
     <div className="relative flex w-full items-center">
       {/* Search icon */}
       <svg
-        className="pointer-events-none absolute left-3.5 h-4 w-4 text-neutral-400"
+        className={`pointer-events-none absolute left-4 h-4 w-4 transition-colors duration-[var(--duration-fast)] ${
+          isFocused ? "text-primary-500" : "text-[var(--foreground-muted)]"
+        }`}
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -37,17 +41,22 @@ export default function SearchBar({
         value={value}
         onChange={(e) => onChange?.(e.currentTarget.value)}
         onKeyDown={handleKeyDown}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         placeholder={placeholder}
-        className="h-11 w-full rounded-full border border-neutral-200 bg-white pl-10 pr-24 text-sm text-neutral-900 placeholder:text-neutral-400 shadow-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-400"
+        className={`h-12 w-full rounded-2xl border bg-[var(--surface-card)] pl-11 pr-24 text-sm text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] transition-all duration-[var(--duration-normal)] ease-[var(--ease-out)] focus:outline-none ${
+          isFocused
+            ? "border-primary-300 shadow-[var(--shadow-focus)] scale-[1.02]"
+            : "border-[var(--surface-border)] shadow-[var(--elevation-1)] hover:border-primary-200 hover:shadow-[var(--elevation-2)]"
+        }`}
       />
 
       <button
         onClick={onSearch}
-        className="absolute right-1.5 h-8 rounded-full bg-primary-600 px-5 text-xs font-medium text-white transition-colors hover:bg-primary-700 active:scale-[.97]"
+        className="absolute right-2 h-8 rounded-xl bg-primary-600 px-4 text-xs font-medium text-white transition-all duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-primary-700 hover:scale-105 active:scale-95 shadow-[var(--elevation-1)] hover:shadow-[var(--elevation-2)]"
       >
         Search
       </button>
     </div>
   );
 }
-

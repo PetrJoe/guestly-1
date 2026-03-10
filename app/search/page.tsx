@@ -151,13 +151,16 @@ function SearchContent() {
             </div>
           ) : searched ? (
             <EmptyState
+              emoji="🔍"
               title="No events found"
               description="Try adjusting your search or filters to find what you're looking for."
-              actionLabel="Clear filters"
-              onAction={() => {
-                setQ("");
-                setCity("");
-                setCategory("");
+              action={{
+                label: "Clear filters",
+                onClick: () => {
+                  setQ("");
+                  setCity("");
+                  setCategory("");
+                }
               }}
             />
           ) : (

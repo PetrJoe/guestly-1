@@ -1,15 +1,38 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import EventCard from "@/components/events/EventCard";
 import { filterEvents, Event } from "@/lib/events";
 import EmptyState from "@/components/ui/EmptyState";
-
 import Button from "@/components/ui/Button";
+import { useScrollAnimation, useStaggeredAnimation } from "@/lib/hooks/useScrollAnimation";
 
-export default async function CityPage({ params }: { params: Promise<{ city: string }> }) {
-  const { city } = await params;
-  const cityName = decodeURIComponent(city);
-  const items = filterEvents({ city: cityName as Event["city"] }).data;
+interface CityPageProps {
+  params: Promise<{ city: string }>;
+}
+
+export default function CityPage({ params }: CityPageProps) {
+  const [cityName, setCityName] = React.useState<string>("");
+  const [items, setItems] = React.useState<Event[]>([]);
+
+  // Animation hooks
+  const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation();
+  const { ref: eventsGridRef, visibleItems: eventsVisible } = useStaggeredAnimation(items.length);
+  const { ref: emptyStateRef, isVisible: emptyStateVisible } = useScrollAnimation();
+
+  React.useEffect(() => {
+    async function loadData() {
+      const resolvedParams = await params;
+      const decodedCity = decodeURIComponent(resolvedParams.city);
+      const events = filterEvents({ city: decodedCity as Event["city"] }).data;
+      
+      setCityName(decodedCity);
+      setItems(events);
+    }
+    
+    loadData();
+  }, [params]);
 
   return (
     <div className="container py-8">

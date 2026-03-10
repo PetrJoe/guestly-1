@@ -2,15 +2,16 @@
 import React from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Card from "@/components/ui/Card";
+import Icon from "@/components/ui/Icon";
 import Link from "next/link";
 import { events } from "@/lib/events";
 import Image from "next/image";
 
 const stats = [
-  { label: "Total Events", value: "6", icon: "📅", color: "bg-primary-50 text-primary-700" },
-  { label: "Tickets Sold", value: "1,240", icon: "🎟️", color: "bg-success-50 text-success-700" },
-  { label: "Revenue", value: "$18,600", icon: "💰", color: "bg-warning-50 text-warning-700" },
-  { label: "Upcoming", value: "3", icon: "🚀", color: "bg-blue-50 text-blue-700" },
+  { label: "Total Events", value: "6", icon: "calendar" as const, color: "bg-primary-50 text-primary-700" },
+  { label: "Tickets Sold", value: "1,240", icon: "ticket" as const, color: "bg-success-50 text-success-700" },
+  { label: "Revenue", value: "$18,600", icon: "money" as const, color: "bg-warning-50 text-warning-700" },
+  { label: "Upcoming", value: "3", icon: "rocket" as const, color: "bg-blue-50 text-blue-700" },
 ];
 
 export default function DashboardPage() {
@@ -39,8 +40,8 @@ export default function DashboardPage() {
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {stats.map((s) => (
             <Card key={s.label} className="flex items-start gap-3">
-              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg ${s.color}`}>
-                {s.icon}
+              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${s.color}`}>
+                <Icon name={s.icon} size={20} />
               </span>
               <div>
                 <p className="text-xs font-medium text-neutral-500">{s.label}</p>

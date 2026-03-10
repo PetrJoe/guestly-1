@@ -12,7 +12,7 @@ interface TabsProps {
   defaultTabId?: string;
 }
 
-export default function Tabs({ tabs, defaultTabId }: TabsProps) {
+function Tabs({ tabs, defaultTabId }: TabsProps) {
   const initial = defaultTabId || (tabs[0] ? tabs[0].id : "");
   const [active, setActive] = React.useState(initial);
   const current = tabs.find((t) => t.id === active);
@@ -42,3 +42,8 @@ export default function Tabs({ tabs, defaultTabId }: TabsProps) {
   );
 }
 
+
+// Named export for compatibility
+export { Tabs };
+// Default export
+export default Tabs;

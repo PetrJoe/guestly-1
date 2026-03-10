@@ -34,6 +34,16 @@ const quickActions = [
     color: "bg-primary-50 text-primary-600",
   },
   {
+    label: "Crypto Deposit",
+    href: "/wallet/crypto",
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    color: "bg-warning-50 text-warning-600",
+  },
+  {
     label: "Event Savings",
     href: "/wallet/savings",
     icon: (
@@ -53,34 +63,34 @@ const quickActions = [
     ),
     color: "bg-neutral-100 text-neutral-600",
   },
-  {
-    label: "Explore Events",
-    href: "/explore",
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
-    ),
-    color: "bg-warning-50 text-warning-600",
-  },
 ];
 
 export default function WalletOverview() {
   const [balance, setBalance] = React.useState(0);
+  const [promoBalance, setPromoBalance] = React.useState(0);
   const [goal, setGoal] = React.useState(0);
   const [progress, setProgress] = React.useState(0);
   const [txns, setTxns] = React.useState<Txn[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [cryptoBalances, setCryptoBalances] = React.useState<any[]>([]);
+  const [totalPortfolioValue, setTotalPortfolioValue] = React.useState<number>();
 
   React.useEffect(() => {
     async function load() {
       try {
-        const [balRes, savRes, txnRes] = await Promise.all([
-          fetch("/api/wallet/balance").then((r) => r.json()),
+        const [portfolioRes, savRes, txnRes] = await Promise.all([
+          fetch("/api/wallet/portfolio").then((r) => r.json()),
           fetch("/api/savings").then((r) => r.json()),
           fetch("/api/wallet/transactions").then((r) => r.json()),
         ]);
-        setBalance(balRes.balance || 0);
+        
+        if (portfolioRes.success) {
+          setBalance(portfolioRes.data.fiatBalance || 0);
+          setPromoBalance(portfolioRes.data.promoBalance || 0);
+          setCryptoBalances(portfolioRes.data.cryptoBalances || []);
+          setTotalPortfolioValue(portfolioRes.data.totalPortfolioValue);
+        }
+        
         setGoal(savRes.goal || 0);
         setProgress(savRes.progress || 0);
         setTxns((txnRes.transactions as Txn[]) || []);
@@ -105,7 +115,13 @@ export default function WalletOverview() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Left column: Balance + Quick actions */}
           <div className="flex flex-col gap-6 lg:col-span-2">
-            <WalletCard balance={balance} loading={loading} />
+            <WalletCard 
+              balance={balance}
+              promoBalance={promoBalance}
+              loading={loading} 
+              cryptoBalances={cryptoBalances}
+              totalPortfolioValue={totalPortfolioValue}
+            />
 
             {/* Quick Actions */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

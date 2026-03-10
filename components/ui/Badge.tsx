@@ -1,27 +1,74 @@
 import React from "react";
 
-type Variant = "neutral" | "success" | "warning" | "primary";
+type Variant =
+  | "neutral"
+  | "primary"
+  | "success"
+  | "warning"
+  | "danger"
+  | "navy"
+  | "virtual"
+  | "hybrid"
+  | "physical"
+  | "free"
+  | "live";
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: Variant;
+  dot?: boolean;
   children?: React.ReactNode;
 }
 
-function color(variant: Variant) {
-  if (variant === "success") return "bg-success-100 text-success-700";
-  if (variant === "warning") return "bg-warning-100 text-warning-700";
-  if (variant === "primary") return "bg-primary-100 text-primary-700";
-  return "bg-neutral-100 text-neutral-700";
+function colorMap(variant: Variant) {
+  const map: Record<Variant, string> = {
+    neutral: "bg-neutral-100 text-neutral-700",
+    primary: "bg-primary-100 text-primary-700",
+    success: "bg-success-50 text-success-700",
+    warning: "bg-warning-100 text-warning-800",
+    danger: "bg-danger-50 text-danger-700",
+    navy: "bg-navy-800 text-white",
+    virtual: "bg-primary-500 text-white",
+    hybrid: "bg-navy-700 text-primary-300",
+    physical: "bg-success-500 text-white",
+    free: "bg-success-50 text-success-700",
+    live: "bg-danger-500 text-white",
+  };
+  return map[variant] ?? map.neutral;
 }
 
-export default function Badge({ variant = "neutral", className = "", children, ...props }: BadgeProps) {
+function dotColor(variant: Variant) {
+  const map: Record<Variant, string> = {
+    neutral: "bg-neutral-500",
+    primary: "bg-primary-500",
+    success: "bg-success-500",
+    warning: "bg-warning-500",
+    danger: "bg-danger-500",
+    navy: "bg-white",
+    virtual: "bg-white",
+    hybrid: "bg-primary-300",
+    physical: "bg-white",
+    free: "bg-success-500",
+    live: "bg-white animate-pulse-dot",
+  };
+  return map[variant] ?? map.neutral;
+}
+
+export default function Badge({
+  variant = "neutral",
+  dot,
+  className = "",
+  children,
+  ...props
+}: BadgeProps) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${color(variant)} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide ${colorMap(variant)} ${className}`}
       {...props}
     >
+      {dot && (
+        <span className={`h-1.5 w-1.5 rounded-full ${dotColor(variant)}`} />
+      )}
       {children}
     </span>
   );
 }
-

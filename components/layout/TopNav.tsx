@@ -3,8 +3,8 @@ import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Avatar from "@/components/ui/Avatar";
-
-// ── Inline SVG icons ─────────────────────────────────────────────────────────
+import ThemeToggle from "@/components/ui/ThemeToggle";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 function SearchIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
@@ -63,8 +63,6 @@ function WalletIcon({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
-// ── Nav links ────────────────────────────────────────────────────────────────
-
 const publicLinks = [
   { href: "/", label: "Home" },
   { href: "/explore", label: "Explore" },
@@ -72,18 +70,23 @@ const publicLinks = [
   { href: "/search", label: "Search" },
 ];
 
-// ── Component ────────────────────────────────────────────────────────────────
-
 export default function TopNav() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [profileOpen, setProfileOpen] = React.useState(false);
   const [role, setRole] = React.useState<string | null>(null);
+  const [scrolled, setScrolled] = React.useState(false);
   const profileRef = React.useRef<HTMLDivElement>(null);
   const mobileCloseRef = React.useRef<HTMLButtonElement>(null);
   const profileButtonRef = React.useRef<HTMLButtonElement>(null);
   const profileMenuId = React.useId();
+
+  React.useEffect(() => {
+    const handler = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", handler, { passive: true });
+    return () => window.removeEventListener("scroll", handler);
+  }, []);
 
   React.useEffect(() => {
     fetch("/api/auth/me", { credentials: "include" })
@@ -113,10 +116,7 @@ export default function TopNav() {
     if (!mobileOpen) return;
     mobileCloseRef.current?.focus();
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        setMobileOpen(false);
-      }
+      if (e.key === "Escape") { e.preventDefault(); setMobileOpen(false); }
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
@@ -124,10 +124,7 @@ export default function TopNav() {
 
   React.useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        setProfileOpen(false);
-        profileButtonRef.current?.focus();
-      }
+      if (e.key === "Escape") { setProfileOpen(false); profileButtonRef.current?.focus(); }
     }
     if (profileOpen) document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
@@ -148,92 +145,130 @@ export default function TopNav() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-neutral-200 bg-white/95 backdrop-blur-sm">
-        <div className="container flex h-14 items-center justify-between gap-4">
-          {/* Left: Logo + Desktop links */}
-          <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600 text-xs font-bold text-white">G</div>
-              <span className="text-base font-bold tracking-tight text-neutral-900">Guestly</span>
+      <header
+        className={`sticky top-0 z-40 w-full transition-all duration-300 ${scrolled
+            ? "border-b border-[var(--surface-border)] bg-[var(--surface-card)]/90 backdrop-blur-xl shadow-sm"
+            : "border-b border-transparent bg-[var(--surface-card)]/80 backdrop-blur-md"
+          }`}
+      >
+        <div className="container flex h-16 items-center justify-between gap-4">
+          {/* Logo */}
+          <div className="flex items-center gap-7">
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-500 text-sm font-black text-white shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-200 btn-glow-blue">
+                G
+              </div>
+              <span className="text-base font-bold tracking-tight text-[var(--foreground)]">
+                Guestly
+              </span>
             </Link>
-            <nav className="hidden items-center gap-1 md:flex">
+
+            {/* Desktop Nav Links */}
+            <nav className="hidden items-center gap-0.5 md:flex">
               {publicLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`rounded-md px-3 py-1.5 text-sm transition-colors ${isActive(link.href)
-                    ? "bg-primary-50 font-medium text-primary-700"
-                    : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                  className={`relative rounded-xl px-3.5 py-2 text-sm font-medium transition-all duration-150 ${isActive(link.href)
+                      ? "text-primary-600 bg-primary-50"
+                      : "text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
                     }`}
                 >
                   {link.label}
+                  {isActive(link.href) && (
+                    <span className="absolute bottom-1 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-primary-500" />
+                  )}
                 </Link>
               ))}
             </nav>
           </div>
 
-          {/* Right: Actions */}
+          {/* Right */}
           <div className="flex items-center gap-1">
+            {/* Theme Toggle */}
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
+
+            {/* Search (mobile) */}
             <Link
               href="/search"
-              className="flex h-9 w-9 items-center justify-center rounded-md text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 md:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-[var(--foreground-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] md:hidden"
               aria-label="Search"
             >
               <SearchIcon />
             </Link>
-            <button
-              className="relative flex h-9 w-9 items-center justify-center rounded-md text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
-              aria-label="Notifications"
-            >
-              <BellIcon />
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary-500" />
-            </button>
 
-            {/* Desktop profile / auth */}
+            {/* Search (desktop inline) */}
+            <Link
+              href="/search"
+              className="hidden md:flex h-9 items-center gap-2 rounded-xl border border-[var(--surface-border)] bg-[var(--surface-bg)] px-3 text-sm text-[var(--foreground-muted)] transition hover:border-primary-300 hover:text-primary-600"
+            >
+              <SearchIcon className="h-4 w-4" />
+              <span>Search events…</span>
+            </Link>
+
+            {/* Notifications */}
+            {role && <NotificationBell />}
+
+            {/* Desktop: Auth / Profile */}
             {role ? (
               <div ref={profileRef} className="relative hidden md:block">
                 <button
                   ref={profileButtonRef}
                   onClick={() => setProfileOpen((v) => !v)}
-                  className="flex items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-neutral-100"
+                  className="flex items-center gap-2 rounded-xl px-2.5 py-1.5 transition-colors hover:bg-[var(--surface-hover)]"
                   aria-haspopup="menu"
                   aria-expanded={profileOpen}
                   aria-controls={profileMenuId}
                   aria-label="Profile menu"
                 >
-                  <Avatar name={role === "organiser" ? "Organiser" : role === "vendor" ? "Vendor" : "Attendee"} size={28} />
-                  <ChevronDownIcon className={`h-3.5 w-3.5 text-neutral-500 transition-transform ${profileOpen ? "rotate-180" : ""}`} />
+                  <Avatar name={role === "organiser" ? "Organiser" : role === "vendor" ? "Vendor" : "Attendee"} size={30} />
+                  <ChevronDownIcon className={`h-3.5 w-3.5 text-[var(--foreground-muted)] transition-transform ${profileOpen ? "rotate-180" : ""}`} />
                 </button>
+
                 {profileOpen && (
-                  <div id={profileMenuId} role="menu" className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-neutral-200 bg-white py-1 shadow-lg">
-                    <div className="border-b border-neutral-100 px-3 py-2">
-                      <div className="text-sm font-medium text-neutral-900">{role === "organiser" ? "Organiser" : role === "vendor" ? "Vendor" : "Attendee"}</div>
-                      <div className="text-xs text-neutral-500">Logged in</div>
+                  <div
+                    id={profileMenuId}
+                    role="menu"
+                    className="absolute right-0 z-50 mt-2 w-52 rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] py-1.5 shadow-xl animate-slide-down"
+                  >
+                    <div className="border-b border-[var(--surface-border)] px-4 py-3">
+                      <div className="text-sm font-semibold text-[var(--foreground)]">
+                        {role === "organiser" ? "Organiser" : role === "vendor" ? "Vendor" : "Attendee"}
+                      </div>
+                      <div className="text-xs text-[var(--foreground-muted)]">Logged in</div>
                     </div>
-                    <Link role="menuitem" href={role === "organiser" ? "/dashboard" : role === "vendor" ? "/vendor" : "/attendee"} className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50" onClick={() => setProfileOpen(false)}>
+                    <Link role="menuitem" href="/attendee/profile" className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-colors" onClick={() => setProfileOpen(false)}>
+                      <UserIcon /> Profile
+                    </Link>
+                    <Link role="menuitem" href={role === "organiser" ? "/dashboard" : role === "vendor" ? "/vendor" : "/attendee"} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-colors" onClick={() => setProfileOpen(false)}>
                       <UserIcon /> Dashboard
                     </Link>
-                    <Link role="menuitem" href="/wallet" className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50" onClick={() => setProfileOpen(false)}>
+                    <Link role="menuitem" href="/wallet" className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-colors" onClick={() => setProfileOpen(false)}>
                       <WalletIcon /> Wallet
                     </Link>
-                    <div className="border-t border-neutral-100">
-                      <button role="menuitem" onClick={handleLogout} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-warning-700 hover:bg-warning-50">
-                        <LogOutIcon /> Log out
-                      </button>
-                    </div>
+                    <div className="my-1 border-t border-[var(--surface-border)]" />
+                    <button role="menuitem" onClick={handleLogout} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-danger-600 hover:bg-danger-50 transition-colors">
+                      <LogOutIcon /> Log out
+                    </button>
                   </div>
                 )}
               </div>
             ) : (
               <div className="hidden items-center gap-2 md:flex">
-                <Link href="/login" className="rounded-md px-3 py-1.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100">Log in</Link>
-                <Link href="/register" className="rounded-md bg-primary-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary-700">Sign up</Link>
+                <Link href="/login" className="rounded-xl px-3.5 py-2 text-sm font-medium text-[var(--foreground-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]">
+                  Log in
+                </Link>
+                <Link href="/register" className="rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-primary-600 btn-glow-blue shadow-sm">
+                  Sign up
+                </Link>
               </div>
             )}
 
             {/* Mobile hamburger */}
             <button
-              className="flex h-9 w-9 items-center justify-center rounded-md text-neutral-600 hover:bg-neutral-100 md:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-[var(--foreground-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] transition-colors md:hidden"
               onClick={() => setMobileOpen((v) => !v)}
               aria-label="Toggle menu"
             >
@@ -246,30 +281,68 @@ export default function TopNav() {
       {/* Mobile slide-out menu */}
       {mobileOpen && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/30 md:hidden" onClick={() => setMobileOpen(false)} />
-          <div className="fixed right-0 top-0 z-50 flex h-full w-72 flex-col bg-white shadow-xl md:hidden" role="dialog" aria-modal="true" aria-label="Mobile menu">
-            <div className="flex h-14 items-center justify-between border-b border-neutral-200 px-4">
-              <span className="text-sm font-bold text-neutral-900" id="mobile-menu-title">Menu</span>
-              <button ref={mobileCloseRef} onClick={() => setMobileOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-neutral-100" aria-label="Close menu">
-                <XIcon className="h-5 w-5 text-neutral-600" />
+          <div className="fixed inset-0 z-40 bg-navy-900/60 backdrop-blur-sm md:hidden" onClick={() => setMobileOpen(false)} />
+          <div
+            className="fixed right-0 top-0 z-50 flex h-full w-72 flex-col bg-[var(--surface-card)] shadow-2xl md:hidden animate-slide-down"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mobile menu"
+          >
+            <div className="flex h-16 items-center justify-between border-b border-[var(--surface-border)] px-5">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-500 text-xs font-black text-white">G</div>
+                <span className="text-base font-bold text-[var(--foreground)]">Guestly</span>
+              </div>
+              <button ref={mobileCloseRef} onClick={() => setMobileOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-xl hover:bg-[var(--surface-hover)]" aria-label="Close menu">
+                <XIcon className="h-5 w-5 text-[var(--foreground-muted)]" />
               </button>
             </div>
-            <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-labelledby="mobile-menu-title">
+
+            <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-4">
               {publicLinks.map((link) => (
-                <Link key={link.href} href={link.href} className={`rounded-md px-3 py-2.5 text-sm transition-colors ${isActive(link.href) ? "bg-primary-50 font-medium text-primary-700" : "text-neutral-700 hover:bg-neutral-100"}`}>{link.label}</Link>
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${isActive(link.href)
+                      ? "bg-primary-50 text-primary-700"
+                      : "text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
+                    }`}
+                >
+                  {link.label}
+                </Link>
               ))}
-              <div className="my-2 border-t border-neutral-100" />
+              <div className="my-3 border-t border-[var(--surface-border)]" />
+              
+              {/* Theme Toggle in mobile menu */}
+              <div className="px-4 py-2">
+                <ThemeToggle />
+              </div>
+              
+              <div className="my-3 border-t border-[var(--surface-border)]" />
               {role ? (
                 <>
-                  <Link href={role === "organiser" ? "/dashboard" : role === "vendor" ? "/vendor" : "/attendee"} className="rounded-md px-3 py-2.5 text-sm text-neutral-700 hover:bg-neutral-100">Dashboard</Link>
-                  <Link href="/wallet" className="rounded-md px-3 py-2.5 text-sm text-neutral-700 hover:bg-neutral-100">Wallet</Link>
-                  <button onClick={handleLogout} className="mt-auto rounded-md px-3 py-2.5 text-left text-sm text-warning-700 hover:bg-warning-50">Log out</button>
+                  <Link href="/attendee/profile" className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)]">
+                    <UserIcon className="h-4 w-4" /> Profile
+                  </Link>
+                  <Link href={role === "organiser" ? "/dashboard" : role === "vendor" ? "/vendor" : "/attendee"} className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)]">
+                    <UserIcon className="h-4 w-4" /> Dashboard
+                  </Link>
+                  <Link href="/wallet" className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)]">
+                    <WalletIcon className="h-4 w-4" /> Wallet
+                  </Link>
+                  <button onClick={handleLogout} className="flex w-full items-center gap-2.5 rounded-xl px-4 py-2.5 text-left text-sm text-danger-600 hover:bg-danger-50">
+                    <LogOutIcon className="h-4 w-4" /> Log out
+                  </button>
                 </>
               ) : (
-                <>
-                  <Link href="/login" className="rounded-md px-3 py-2.5 text-sm text-neutral-700 hover:bg-neutral-100">Log in</Link>
-                  <Link href="/register" className="rounded-md bg-primary-600 px-3 py-2.5 text-center text-sm font-medium text-white hover:bg-primary-700">Sign up</Link>
-                </>
+                <div className="flex flex-col gap-2 pt-2">
+                  <Link href="/login" className="rounded-xl border border-[var(--surface-border)] px-4 py-2.5 text-center text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)]">
+                    Log in
+                  </Link>
+                  <Link href="/register" className="rounded-xl bg-primary-500 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-primary-600">
+                    Sign up free
+                  </Link>
+                </div>
               )}
             </nav>
           </div>

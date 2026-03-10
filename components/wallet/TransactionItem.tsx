@@ -40,7 +40,7 @@ export default function TransactionItem({ txn }: { txn: Txn }) {
   const isCredit = txn.type === "credit";
 
   return (
-    <div className="flex items-center gap-3 rounded-xl bg-white px-4 py-3.5 transition hover:bg-neutral-50">
+    <div className="flex items-center gap-3 px-5 py-4 transition hover:bg-neutral-50">
       {/* Icon */}
       <span
         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${isCredit

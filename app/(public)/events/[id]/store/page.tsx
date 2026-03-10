@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCart } from "@/features/merchandise/CartProvider";
 import { useToast } from "@/components/ui/ToastProvider";
-import Badge from "@/components/ui/Badge";
-import Button from "@/components/ui/Button";
+import ProductCard from "@/components/merchandise/ProductCard";
 import type { Product } from "@/types/merchandise";
 
 // ── Icons ────────────────────────────────────────────────────────────────────
@@ -18,20 +17,6 @@ function CartIcon() {
   );
 }
 
-function PlusIcon() {
-  return (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path d="M12 4.5v15m7.5-7.5h-15" />
-    </svg>
-  );
-}
-
-function StockIndicator({ stock }: { stock: number }) {
-  if (stock <= 0) return <span className="text-xs font-medium text-red-500">Sold out</span>;
-  if (stock <= 10) return <span className="text-xs font-medium text-warning-600">Only {stock} left</span>;
-  return <span className="text-xs text-success-600">In stock</span>;
-}
-
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function EventStorePage() {
@@ -42,6 +27,8 @@ export default function EventStorePage() {
   const [products, setProducts] = React.useState<Product[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [eventTitle, setEventTitle] = React.useState("");
+  const [eventDate, setEventDate] = React.useState("");
+  const [postEventMerchSales, setPostEventMerchSales] = React.useState(false);
   const [filter, setFilter] = React.useState<string>("All");
 
   React.useEffect(() => {
@@ -56,7 +43,10 @@ export default function EventStorePage() {
       }
       if (evRes.ok) {
         const d = await evRes.json();
-        setEventTitle(d.data?.title || d.event?.title || d.title || "Event");
+        const event = d.data || d.event || d;
+        setEventTitle(event.title || "Event");
+        setEventDate(event.date || "");
+        setPostEventMerchSales(event.postEventMerchSales || false);
       }
       setLoading(false);
     }
@@ -70,7 +60,11 @@ export default function EventStorePage() {
 
   const filtered = filter === "All" ? products : products.filter((p) => p.category === filter);
 
-  function handleAdd(product: Product) {
+  // Check if merchandise is available
+  const isEventPast = eventDate && new Date(eventDate) < new Date();
+  const isMerchAvailable = !isEventPast || postEventMerchSales;
+
+  function handleAdd(product: Product, size?: string) {
     if (product.stock <= 0) return;
     addItem({
       productId: product.id,
@@ -78,8 +72,10 @@ export default function EventStorePage() {
       name: product.name,
       price: product.price,
       image: product.image,
+      size,
     });
-    addToast(`${product.name} added to cart`, "success");
+    const sizeText = size ? ` (${size})` : '';
+    addToast(`${product.name}${sizeText} added to cart`, { type: "success" });
   }
 
   return (
@@ -119,6 +115,36 @@ export default function EventStorePage() {
       </div>
 
       <div className="container py-6">
+        {/* Merchandise availability notice */}
+        {!isMerchAvailable && (
+          <div className="mb-6 rounded-xl border border-warning-200 bg-warning-50 p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">🔒</span>
+              <div>
+                <h3 className="text-sm font-semibold text-warning-900">Store Closed</h3>
+                <p className="mt-1 text-xs text-warning-700">
+                  This event has ended and the merchandise store is no longer accepting orders.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Post-event sales notice */}
+        {isEventPast && postEventMerchSales && (
+          <div className="mb-6 rounded-xl border border-primary-200 bg-primary-50 p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">🎉</span>
+              <div>
+                <h3 className="text-sm font-semibold text-primary-900">Post-Event Sales Active</h3>
+                <p className="mt-1 text-xs text-primary-700">
+                  The event has ended, but you can still purchase merchandise!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Category filter */}
         {categories.length > 2 && (
           <div className="mb-6 flex flex-wrap gap-2">
@@ -150,57 +176,15 @@ export default function EventStorePage() {
             <p className="text-sm text-neutral-500">Check back closer to the event for merchandise.</p>
           </div>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filtered.map((product) => (
-              <div
+              <ProductCard
                 key={product.id}
-                className="group flex flex-col overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-sm transition hover:shadow-md"
-              >
-                {/* Image area */}
-                <Link
-                  href={`/events/${eventId}/store/${product.id}`}
-                  className="flex h-44 items-center justify-center bg-neutral-50 text-6xl transition group-hover:bg-neutral-100"
-                >
-                  {product.image}
-                </Link>
-
-                {/* Details */}
-                <div className="flex flex-1 flex-col p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <Link
-                      href={`/events/${eventId}/store/${product.id}`}
-                      className="text-sm font-semibold text-neutral-900 transition hover:text-primary-600"
-                    >
-                      {product.name}
-                    </Link>
-                    <Badge variant="neutral" className="shrink-0 text-[10px]">
-                      {product.category}
-                    </Badge>
-                  </div>
-
-                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-neutral-500">
-                    {product.description}
-                  </p>
-
-                  <div className="mt-auto flex items-end justify-between pt-3">
-                    <div>
-                      <p className="text-lg font-bold text-primary-600 tabular-nums">
-                        ${product.price}
-                      </p>
-                      <StockIndicator stock={product.stock} />
-                    </div>
-                    <Button
-                      size="sm"
-                      disabled={product.stock <= 0}
-                      onClick={() => handleAdd(product)}
-                      className="gap-1"
-                    >
-                      <PlusIcon />
-                      Add
-                    </Button>
-                  </div>
-                </div>
-              </div>
+                product={product}
+                eventId={eventId}
+                onAddToCart={handleAdd}
+                disabled={!isMerchAvailable}
+              />
             ))}
           </div>
         )}

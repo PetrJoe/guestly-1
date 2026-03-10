@@ -42,15 +42,31 @@ function CartEmptyIcon() {
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function CartPage() {
-  const { items, count, total, removeItem, updateQuantity, clearCart } = useCart();
+  const { 
+    items, 
+    count, 
+    total, 
+    removeItem, 
+    updateQuantity, 
+    ticketItems,
+    ticketCount,
+    ticketTotal,
+    removeTicketItem,
+    updateTicketQuantity,
+    combinedCount,
+    combinedTotal,
+    clearAll
+  } = useCart();
   const router = useRouter();
 
-  if (items.length === 0) {
+  const hasItems = items.length > 0 || ticketItems.length > 0;
+
+  if (!hasItems) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
         <CartEmptyIcon />
         <h1 className="text-lg font-bold text-neutral-900">Your cart is empty</h1>
-        <p className="text-sm text-neutral-500">Browse event stores to find merchandise you love.</p>
+        <p className="text-sm text-neutral-500">Browse events to find tickets and merchandise.</p>
         <Link href="/explore">
           <Button variant="outline">Explore Events</Button>
         </Link>
@@ -70,10 +86,15 @@ export default function CartPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-neutral-900">Shopping Cart</h1>
-          <p className="mt-1 text-sm text-neutral-500">{count} item{count !== 1 ? "s" : ""} in your cart</p>
+          <p className="mt-1 text-sm text-neutral-500">
+            {combinedCount} item{combinedCount !== 1 ? "s" : ""} in your cart
+            {ticketCount > 0 && count > 0 && (
+              <span className="text-neutral-400"> • {ticketCount} ticket{ticketCount !== 1 ? "s" : ""}, {count} merch item{count !== 1 ? "s" : ""}</span>
+            )}
+          </p>
         </div>
         <button
-          onClick={clearCart}
+          onClick={clearAll}
           className="flex items-center gap-1.5 text-xs font-medium text-red-500 transition hover:text-red-700"
         >
           <TrashIcon />
@@ -83,63 +104,145 @@ export default function CartPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Items */}
-        <div className="space-y-3 lg:col-span-2">
-          {items.map((item) => {
-            const key = item.size ? `${item.productId}-${item.size}` : item.productId;
-
-            return (
-              <div
-                key={key}
-                className="flex items-center gap-4 rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm"
-              >
-                {/* Product image */}
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-neutral-50 text-4xl">
-                  {item.image}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="truncate text-sm font-semibold text-neutral-900">{item.name}</h3>
-                  {item.size && (
-                    <p className="mt-0.5 text-xs text-neutral-500">Size: {item.size}</p>
-                  )}
-                  <p className="mt-1 text-sm font-bold text-primary-600 tabular-nums">${item.price}</p>
-                </div>
-
-                {/* Quantity */}
-                <div className="flex items-center rounded-lg border border-neutral-200 bg-white">
-                  <button
-                    onClick={() => updateQuantity(item.productId, item.quantity - 1, item.size)}
-                    className="flex h-8 w-8 items-center justify-center text-neutral-500 transition hover:text-neutral-900"
-                  >
-                    <MinusIcon />
-                  </button>
-                  <span className="w-8 text-center text-sm font-semibold text-neutral-900 tabular-nums">
-                    {item.quantity}
-                  </span>
-                  <button
-                    onClick={() => updateQuantity(item.productId, item.quantity + 1, item.size)}
-                    className="flex h-8 w-8 items-center justify-center text-neutral-500 transition hover:text-neutral-900"
-                  >
-                    <PlusIcon />
-                  </button>
-                </div>
-
-                {/* Item total + remove */}
-                <div className="flex flex-col items-end gap-1">
-                  <span className="text-sm font-bold text-neutral-900 tabular-nums">
-                    ${(item.price * item.quantity).toFixed(2)}
-                  </span>
-                  <button
-                    onClick={() => removeItem(item.productId, item.size)}
-                    className="text-neutral-400 transition hover:text-red-500"
-                  >
-                    <TrashIcon />
-                  </button>
-                </div>
+        <div className="space-y-4 lg:col-span-2">
+          {/* Tickets Section */}
+          {ticketItems.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🎫</span>
+                <h2 className="text-lg font-bold text-neutral-900">Tickets</h2>
+                <span className="text-sm text-neutral-500">({ticketCount} item{ticketCount !== 1 ? "s" : ""})</span>
               </div>
-            );
-          })}
+              
+              {ticketItems.map((item) => {
+                const key = item.attendanceType 
+                  ? `${item.eventId}-${item.type}-${item.attendanceType}` 
+                  : `${item.eventId}-${item.type}`;
+
+                return (
+                  <div
+                    key={key}
+                    className="flex items-center gap-4 rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm"
+                  >
+                    {/* Ticket icon */}
+                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-4xl">
+                      🎫
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="truncate text-sm font-semibold text-neutral-900">{item.eventTitle}</h3>
+                      <p className="mt-0.5 text-xs text-neutral-500">
+                        {item.type} Ticket
+                        {item.attendanceType && ` • ${item.attendanceType === 'physical' ? 'Physical' : 'Virtual'}`}
+                      </p>
+                      <p className="mt-1 text-sm font-bold text-primary-600 tabular-nums">${item.price}</p>
+                    </div>
+
+                    {/* Quantity */}
+                    <div className="flex items-center rounded-lg border border-neutral-200 bg-white">
+                      <button
+                        onClick={() => updateTicketQuantity(item.eventId, item.type, item.quantity - 1, item.attendanceType)}
+                        className="flex h-8 w-8 items-center justify-center text-neutral-500 transition hover:text-neutral-900"
+                      >
+                        <MinusIcon />
+                      </button>
+                      <span className="w-8 text-center text-sm font-semibold text-neutral-900 tabular-nums">
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() => updateTicketQuantity(item.eventId, item.type, item.quantity + 1, item.attendanceType)}
+                        className="flex h-8 w-8 items-center justify-center text-neutral-500 transition hover:text-neutral-900"
+                      >
+                        <PlusIcon />
+                      </button>
+                    </div>
+
+                    {/* Item total + remove */}
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-sm font-bold text-neutral-900 tabular-nums">
+                        ${(item.price * item.quantity).toFixed(2)}
+                      </span>
+                      <button
+                        onClick={() => removeTicketItem(item.eventId, item.type, item.attendanceType)}
+                        className="text-neutral-400 transition hover:text-red-500"
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Merchandise Section */}
+          {items.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🛍️</span>
+                <h2 className="text-lg font-bold text-neutral-900">Merchandise</h2>
+                <span className="text-sm text-neutral-500">({count} item{count !== 1 ? "s" : ""})</span>
+              </div>
+              
+              {items.map((item) => {
+                const key = item.size ? `${item.productId}-${item.size}` : item.productId;
+
+                return (
+                  <div
+                    key={key}
+                    className="flex items-center gap-4 rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm"
+                  >
+                    {/* Product image */}
+                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-neutral-50 text-4xl">
+                      {item.image}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="truncate text-sm font-semibold text-neutral-900">{item.name}</h3>
+                      {item.size && (
+                        <p className="mt-0.5 text-xs text-neutral-500">Size: {item.size}</p>
+                      )}
+                      <p className="mt-1 text-sm font-bold text-primary-600 tabular-nums">${item.price}</p>
+                    </div>
+
+                    {/* Quantity */}
+                    <div className="flex items-center rounded-lg border border-neutral-200 bg-white">
+                      <button
+                        onClick={() => updateQuantity(item.productId, item.quantity - 1, item.size)}
+                        className="flex h-8 w-8 items-center justify-center text-neutral-500 transition hover:text-neutral-900"
+                      >
+                        <MinusIcon />
+                      </button>
+                      <span className="w-8 text-center text-sm font-semibold text-neutral-900 tabular-nums">
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() => updateQuantity(item.productId, item.quantity + 1, item.size)}
+                        className="flex h-8 w-8 items-center justify-center text-neutral-500 transition hover:text-neutral-900"
+                      >
+                        <PlusIcon />
+                      </button>
+                    </div>
+
+                    {/* Item total + remove */}
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-sm font-bold text-neutral-900 tabular-nums">
+                        ${(item.price * item.quantity).toFixed(2)}
+                      </span>
+                      <button
+                        onClick={() => removeItem(item.productId, item.size)}
+                        className="text-neutral-400 transition hover:text-red-500"
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Order Summary */}
@@ -147,10 +250,18 @@ export default function CartPage() {
           <h2 className="text-sm font-semibold text-neutral-900">Order Summary</h2>
 
           <div className="mt-4 space-y-2 border-b border-neutral-100 pb-4">
-            <div className="flex justify-between text-sm text-neutral-600">
-              <span>Subtotal ({count} items)</span>
-              <span className="tabular-nums">${total.toFixed(2)}</span>
-            </div>
+            {ticketItems.length > 0 && (
+              <div className="flex justify-between text-sm text-neutral-600">
+                <span>Tickets ({ticketCount})</span>
+                <span className="tabular-nums">${ticketTotal.toFixed(2)}</span>
+              </div>
+            )}
+            {items.length > 0 && (
+              <div className="flex justify-between text-sm text-neutral-600">
+                <span>Merchandise ({count})</span>
+                <span className="tabular-nums">${total.toFixed(2)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-sm text-neutral-600">
               <span>Shipping</span>
               <span className="text-success-600">Free</span>
@@ -159,13 +270,13 @@ export default function CartPage() {
 
           <div className="flex justify-between pt-4">
             <span className="text-sm font-semibold text-neutral-900">Total</span>
-            <span className="text-lg font-bold text-neutral-900 tabular-nums">${total.toFixed(2)}</span>
+            <span className="text-lg font-bold text-neutral-900 tabular-nums">${combinedTotal.toFixed(2)}</span>
           </div>
 
           <Button
             size="lg"
             className="mt-5 w-full"
-            onClick={() => router.push("/checkout?type=merch")}
+            onClick={() => router.push("/checkout?type=combined")}
           >
             Proceed to Checkout
           </Button>

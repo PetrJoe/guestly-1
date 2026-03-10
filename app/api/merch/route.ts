@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getProductsByEvent, getAllProducts, getProductById, getMerchStats } from "@/lib/store";
+import { getProductsByEvent, getAllActiveProducts, getProductById, getMerchStats } from "@/lib/store";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -21,5 +21,5 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ products: getProductsByEvent(eventId) });
   }
 
-  return NextResponse.json({ products: getAllProducts() });
+  return NextResponse.json({ products: getAllActiveProducts() });
 }

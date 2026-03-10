@@ -9,8 +9,11 @@ function PaymentContent() {
   const router = useRouter();
   const orderId = params.get("orderId") || "";
   const method = params.get("method") === "wallet" ? "wallet" : "card";
+  const savingsApplied = parseFloat(params.get("savingsApplied") || "0");
+  const savingsTargetId = params.get("savingsTargetId") || undefined;
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
+  const [retryCount, setRetryCount] = React.useState(0);
 
   async function pay() {
     if (loading) return;
@@ -20,19 +23,51 @@ function PaymentContent() {
       const res = await fetch("/api/orders/pay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId, method }),
+        body: JSON.stringify({ 
+          orderId, 
+          method,
+          savingsApplied,
+          savingsTargetId,
+        }),
       });
+      
+      const data = await res.json().catch(() => ({}));
+      
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || "Payment failed. Please try again.");
+        // Specific error handling
+        if (res.status === 402) {
+          setError("Insufficient funds in your wallet. Please add funds or use a different payment method.");
+        } else if (res.status === 404) {
+          setError("Order not found. Please return to checkout and try again.");
+        } else if (res.status === 409) {
+          setError("This order has already been paid.");
+          setTimeout(() => router.replace(`/confirmation/${orderId}`), 2000);
+          return;
+        } else {
+          setError(data.error || "Payment failed. Please try again.");
+        }
+        setRetryCount(prev => prev + 1);
         return;
       }
+      
+      // Success
       router.replace(`/confirmation/${orderId}`);
-    } catch {
-      setError("Network error. Please try again.");
+    } catch (err) {
+      console.error("Payment error:", err);
+      setError("Network error. Please check your connection and try again.");
+      setRetryCount(prev => prev + 1);
     } finally {
       setLoading(false);
     }
+  }
+
+  function goBack() {
+    router.back();
+  }
+
+  function contactSupport() {
+    // Open support modal or redirect
+    window.location.href = "mailto:support@guestly.com?subject=Payment Issue&body=Order ID: " + orderId;
   }
 
   return (
@@ -71,8 +106,41 @@ function PaymentContent() {
             </div>
 
             {error && (
-              <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-xs text-red-600">
-                {error}
+              <div className="mb-4 rounded-xl bg-danger-50 border border-danger-200 px-4 py-4 animate-shake">
+                <div className="flex items-start gap-3">
+                  <svg className="h-5 w-5 text-danger-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-danger-700 mb-1">Payment Failed</p>
+                    <p className="text-xs text-danger-600 leading-relaxed">{error}</p>
+                    
+                    {/* Recovery options */}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        onClick={pay}
+                        disabled={loading}
+                        className="text-xs font-medium text-danger-700 hover:text-danger-800 underline"
+                      >
+                        Try Again
+                      </button>
+                      <button
+                        onClick={goBack}
+                        className="text-xs font-medium text-danger-700 hover:text-danger-800 underline"
+                      >
+                        Change Payment Method
+                      </button>
+                      {retryCount >= 2 && (
+                        <button
+                          onClick={contactSupport}
+                          className="text-xs font-medium text-danger-700 hover:text-danger-800 underline"
+                        >
+                          Contact Support
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 

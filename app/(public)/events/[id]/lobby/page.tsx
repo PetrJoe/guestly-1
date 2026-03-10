@@ -1,15 +1,10 @@
-import React from "react";
-import { notFound } from "next/navigation";
-import { getEventById } from "@/lib/events";
-import VirtualLobbyClient from "@/components/virtual/VirtualLobbyClient";
+'use client';
 
-export default async function VirtualLobbyPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const event = getEventById(id);
+import { use } from 'react';
+import VirtualLobbyClient from '@/components/virtual/VirtualLobbyClient';
 
-  if (!event) {
-    notFound();
-  }
+export default function EventLobbyPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
 
-  return <VirtualLobbyClient event={event} />;
+  return <VirtualLobbyClient eventId={id} />;
 }

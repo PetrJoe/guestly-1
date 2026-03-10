@@ -1,32 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { activateVendorSubscription, getVendorSubscription, type VendorPlan } from "@/lib/store";
+import { getVendorByUserId } from "@/lib/store";
 
-function userId(req: NextRequest) {
-  const uid = req.cookies.get("user_id")?.value;
-  if (!uid) throw new Error("Unauthorized");
-  return uid;
-}
-
+/**
+ * GET /api/vendor/subscription
+ * Get current vendor subscription status
+ */
 export async function GET(req: NextRequest) {
-  try {
-    const sub = getVendorSubscription(userId(req));
-    return NextResponse.json({ ok: true, subscription: sub });
-  } catch {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
-}
+  const userId = req.cookies.get("user_id")?.value;
 
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json().catch(() => ({}));
-    const plan = body?.plan as VendorPlan | undefined;
-    if (!plan || !["1m", "3m", "6m", "12m"].includes(plan)) {
-      return NextResponse.json({ ok: false, error: "Invalid plan" }, { status: 400 });
-    }
-    const sub = activateVendorSubscription(userId(req), plan);
-    return NextResponse.json({ ok: true, subscription: sub });
-  } catch {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  if (!userId) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
   }
-}
 
+  const vendor = getVendorByUserId(userId);
+
+  if (!vendor) {
+    return NextResponse.json(
+      { error: "Vendor profile not found" },
+      { status: 404 }
+    );
+  }
+
+  return NextResponse.json({
+    success: true,
+    subscription: vendor.subscription || null,
+    isPremium: !!vendor.subscription && vendor.subscription.expiresAt > Date.now(),
+  });
+}

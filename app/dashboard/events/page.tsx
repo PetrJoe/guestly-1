@@ -6,6 +6,7 @@ import Badge from "@/components/ui/Badge";
 import Link from "next/link";
 import { events } from "@/lib/events";
 import Image from "next/image";
+import EmptyState from "@/components/ui/EmptyState";
 
 export default function MyEventsPage() {
   return (
@@ -83,17 +84,21 @@ export default function MyEventsPage() {
 
         {/* Empty State */}
         {events.length === 0 && (
-          <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-neutral-200 py-16">
-            <span className="text-4xl">📅</span>
-            <p className="mt-3 text-sm font-medium text-neutral-600">No events yet</p>
-            <p className="mt-1 text-xs text-neutral-400">Create your first event to get started</p>
-            <Link
-              href="/dashboard/events/new"
-              className="mt-4 rounded-xl bg-primary-600 px-5 py-2 text-sm font-semibold text-white hover:bg-primary-700"
-            >
-              Create Event
-            </Link>
-          </div>
+          <EmptyState
+            emoji="🎉"
+            title="Create your first event"
+            description="Start building amazing experiences for your attendees. Set up tickets, manage vendors, track analytics, and more."
+            action={{
+              label: "Create Event",
+              href: "/dashboard/events/new",
+            }}
+            tips={[
+              "Choose between Physical, Virtual, or Hybrid event types",
+              "Set up multiple ticket tiers with different pricing",
+              "Add merchandise to generate additional revenue",
+              "Use analytics to optimize your event performance",
+            ]}
+          />
         )}
       </div>
     </ProtectedRoute>

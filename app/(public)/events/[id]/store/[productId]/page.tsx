@@ -6,6 +6,7 @@ import { useCart } from "@/features/merchandise/CartProvider";
 import { useToast } from "@/components/ui/ToastProvider";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import FulfillmentBadge from "@/components/merchandise/FulfillmentBadge";
 import type { Product } from "@/types/merchandise";
 
 // ── Icons ────────────────────────────────────────────────────────────────────
@@ -81,7 +82,7 @@ export default function ProductDetailPage() {
       },
       qty
     );
-    addToast(`${qty}× ${product.name} added to cart`, "success");
+    addToast(`${qty}× ${product.name} added to cart`, { type: "success" });
   }
 
   if (loading) {
@@ -140,6 +141,27 @@ export default function ProductDetailPage() {
             <p className="mt-2 text-base font-bold text-primary-600 tabular-nums">${product.price}</p>
 
             <p className="mt-4 text-sm leading-relaxed text-neutral-600">{product.description}</p>
+
+            {/* Fulfillment Information */}
+            <div className="mt-4">
+              <FulfillmentBadge type={product.fulfillmentType} />
+              {product.fulfillmentType === "pickup" && product.pickupInstructions && (
+                <div className="mt-3 rounded-lg bg-blue-50 border border-blue-200 p-3">
+                  <p className="text-xs font-semibold text-blue-900 mb-1">Pickup Instructions</p>
+                  <p className="text-xs text-blue-700">{product.pickupInstructions}</p>
+                </div>
+              )}
+              {product.fulfillmentType === "delivery" && (
+                <p className="mt-2 text-xs text-neutral-500">
+                  Shipping address will be collected at checkout
+                </p>
+              )}
+              {product.fulfillmentType === "digital" && (
+                <p className="mt-2 text-xs text-neutral-500">
+                  Download link will be provided after purchase
+                </p>
+              )}
+            </div>
 
             {/* Stock */}
             <div className="mt-4 flex items-center gap-2 text-sm">

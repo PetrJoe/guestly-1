@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { getSocket, ChatMessage, EventRoomState } from "@/lib/websocket";
+import { getSocket, ChatMessage, EventRoomState, UserPresence } from "@/lib/websocket";
 import { useToast } from "@/components/ui/ToastProvider";
 
 // ── Icons ────────────────────────────────────────────────────────────────────
@@ -31,6 +31,57 @@ function ChatBubbleIcon() {
   );
 }
 
+function SmileIcon() {
+  return (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
+    </svg>
+  );
+}
+
+// ── Emoji Picker ─────────────────────────────────────────────────────────────
+
+const EMOJI_LIST = ['😀', '😂', '😍', '🎉', '👍', '👏', '❤️', '🔥', '✨', '🎊', '🙌', '💯', '🚀', '⭐', '💪', '🎵', '🎤', '🎸', '🎹', '🎺'];
+
+interface EmojiPickerProps {
+  onSelect: (emoji: string) => void;
+  onClose: () => void;
+}
+
+function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.emoji-picker')) {
+        onClose();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onClose]);
+
+  return (
+    <div className="emoji-picker absolute bottom-full right-0 mb-2 rounded-xl border border-neutral-200 bg-white p-2 shadow-lg">
+      <div className="grid grid-cols-5 gap-1">
+        {EMOJI_LIST.map((emoji) => (
+          <button
+            key={emoji}
+            type="button"
+            onClick={() => {
+              onSelect(emoji);
+              onClose();
+            }}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-xl transition hover:bg-neutral-100"
+          >
+            {emoji}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Props ────────────────────────────────────────────────────────────────────
 
 interface ChatPanelProps {
@@ -43,8 +94,13 @@ export default function ChatPanel({ eventId, userId, userName }: ChatPanelProps)
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
   const [input, setInput] = React.useState("");
   const [userCount, setUserCount] = React.useState(0);
+  const [onlineUsers, setOnlineUsers] = React.useState<UserPresence[]>([]);
+  const [showEmojiPicker, setShowEmojiPicker] = React.useState(false);
+  const [typingUsers, setTypingUsers] = React.useState<Set<string>>(new Set());
+  const [isTyping, setIsTyping] = React.useState(false);
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = React.useRef<NodeJS.Timeout | undefined>(undefined);
   const { addToast } = useToast();
 
   const scrollToBottom = React.useCallback(() => {
@@ -65,6 +121,9 @@ export default function ChatPanel({ eventId, userId, userName }: ChatPanelProps)
     function onRoomState(state: EventRoomState) {
       setMessages(state.messages);
       setUserCount(state.userCount);
+      if (state.onlineUsers) {
+        setOnlineUsers(state.onlineUsers);
+      }
       scrollToBottom();
     }
 
@@ -75,11 +134,29 @@ export default function ChatPanel({ eventId, userId, userName }: ChatPanelProps)
 
     function onUserJoined(data: { userId: string; userName: string; userCount: number }) {
       setUserCount(data.userCount);
-      addToast(`${data.userName} joined`, "info");
+      addToast(`${data.userName} joined`, { type: "info" });
     }
 
     function onUserLeft(data: { userId: string; userCount: number }) {
       setUserCount(data.userCount);
+    }
+
+    function onPresenceUpdate(data: { onlineUsers: UserPresence[] }) {
+      setOnlineUsers(data.onlineUsers);
+    }
+
+    function onUserTyping(data: { userId: string; userName: string; isTyping: boolean }) {
+      if (data.userId === userId) return; // Ignore own typing
+      
+      setTypingUsers((prev) => {
+        const next = new Set(prev);
+        if (data.isTyping) {
+          next.add(data.userName);
+        } else {
+          next.delete(data.userName);
+        }
+        return next;
+      });
     }
 
     socket.on("connect", onConnect);
@@ -87,6 +164,8 @@ export default function ChatPanel({ eventId, userId, userName }: ChatPanelProps)
     socket.on("new-message", onNewMessage);
     socket.on("user-joined", onUserJoined);
     socket.on("user-left", onUserLeft);
+    socket.on("presence-update", onPresenceUpdate);
+    socket.on("user-typing", onUserTyping);
 
     if (socket.connected) {
       onConnect();
@@ -100,9 +179,33 @@ export default function ChatPanel({ eventId, userId, userName }: ChatPanelProps)
       socket.off("new-message", onNewMessage);
       socket.off("user-joined", onUserJoined);
       socket.off("user-left", onUserLeft);
+      socket.off("presence-update", onPresenceUpdate);
+      socket.off("user-typing", onUserTyping);
       socket.emit("leave-event", { eventId, userId });
     };
   }, [eventId, userId, userName, addToast, scrollToBottom]);
+
+  function handleInputChange(value: string) {
+    setInput(value);
+
+    // Emit typing indicator
+    const socket = getSocket();
+    if (value && !isTyping) {
+      setIsTyping(true);
+      socket.emit("typing", { eventId, userId, userName, isTyping: true });
+    }
+
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Stop typing after 2 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      socket.emit("typing", { eventId, userId, userName, isTyping: false });
+    }, 2000);
+  }
 
   function send(e: React.FormEvent) {
     e.preventDefault();
@@ -111,6 +214,13 @@ export default function ChatPanel({ eventId, userId, userName }: ChatPanelProps)
     const socket = getSocket();
     socket.emit("send-message", { eventId, userId, userName, message: input });
     setInput("");
+    setIsTyping(false);
+    socket.emit("typing", { eventId, userId, userName, isTyping: false });
+    inputRef.current?.focus();
+  }
+
+  function insertEmoji(emoji: string) {
+    setInput((prev) => prev + emoji);
     inputRef.current?.focus();
   }
 
@@ -122,15 +232,47 @@ export default function ChatPanel({ eventId, userId, userName }: ChatPanelProps)
     return msg.userId === userId;
   }
 
+  const typingText = React.useMemo(() => {
+    const users = Array.from(typingUsers);
+    if (users.length === 0) return null;
+    if (users.length === 1) return `${users[0]} is typing...`;
+    if (users.length === 2) return `${users[0]} and ${users[1]} are typing...`;
+    return `${users.length} people are typing...`;
+  }, [typingUsers]);
+
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3">
         <h3 className="text-sm font-semibold text-neutral-900">Live Chat</h3>
-        <div className="flex items-center gap-1.5 rounded-full bg-success-50 px-2.5 py-1 text-xs font-medium text-success-700">
-          <span className="h-1.5 w-1.5 rounded-full bg-success-500" />
-          <UsersIcon />
-          <span>{userCount}</span>
+        <div className="flex items-center gap-3">
+          {/* Online users indicator */}
+          {onlineUsers.length > 0 && (
+            <div className="group relative">
+              <div className="flex items-center gap-1.5 rounded-full bg-success-50 px-2.5 py-1 text-xs font-medium text-success-700 cursor-pointer">
+                <span className="h-1.5 w-1.5 rounded-full bg-success-500 animate-pulse" />
+                <UsersIcon />
+                <span>{onlineUsers.length}</span>
+              </div>
+              {/* Tooltip with online users */}
+              <div className="absolute right-0 top-full mt-2 hidden w-48 rounded-lg border border-neutral-200 bg-white p-2 shadow-lg group-hover:block z-10">
+                <p className="mb-1 text-xs font-semibold text-neutral-700">Online now</p>
+                <div className="max-h-32 overflow-y-auto">
+                  {onlineUsers.map((user) => (
+                    <div key={user.userId} className="flex items-center gap-2 py-1">
+                      <span className="h-2 w-2 rounded-full bg-success-500" />
+                      <span className="text-xs text-neutral-600">{user.userName}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          {/* Total user count */}
+          <div className="flex items-center gap-1.5 rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-700">
+            <UsersIcon />
+            <span>{userCount}</span>
+          </div>
         </div>
       </div>
 
@@ -177,6 +319,13 @@ export default function ChatPanel({ eventId, userId, userName }: ChatPanelProps)
             })}
           </div>
         )}
+        
+        {/* Typing indicator */}
+        {typingText && (
+          <div className="mt-2 text-xs italic text-neutral-400">
+            {typingText}
+          </div>
+        )}
       </div>
 
       {/* Input */}
@@ -187,8 +336,23 @@ export default function ChatPanel({ eventId, userId, userName }: ChatPanelProps)
             className="flex-1 rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 py-2.5 text-sm outline-none transition placeholder:text-neutral-400 focus:border-primary-300 focus:bg-white focus:ring-2 focus:ring-primary-100"
             placeholder="Type a message…"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => handleInputChange(e.target.value)}
           />
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-200 text-neutral-500 transition hover:bg-neutral-50 hover:text-neutral-700"
+            >
+              <SmileIcon />
+            </button>
+            {showEmojiPicker && (
+              <EmojiPicker
+                onSelect={insertEmoji}
+                onClose={() => setShowEmojiPicker(false)}
+              />
+            )}
+          </div>
           <button
             type="submit"
             disabled={!input.trim()}

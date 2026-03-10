@@ -6,58 +6,166 @@ interface ModalProps {
   open: boolean;
   onClose?: () => void;
   title?: string;
+  description?: string;
+  size?: "sm" | "md" | "lg" | "xl";
+  closeOnOverlayClick?: boolean;
+  closeOnEscape?: boolean;
+  showCloseButton?: boolean;
   children?: React.ReactNode;
+  footer?: React.ReactNode;
 }
 
-export default function Modal({ open, onClose, title, children }: ModalProps) {
+function sizeClass(size: "sm" | "md" | "lg" | "xl") {
+  const map = { sm: "max-w-sm", md: "max-w-md", lg: "max-w-lg", xl: "max-w-2xl" };
+  return map[size] ?? map.md;
+}
+
+function Modal({ 
+  open, 
+  onClose, 
+  title, 
+  description, 
+  size = "md", 
+  closeOnOverlayClick = true,
+  closeOnEscape = true,
+  showCloseButton = true,
+  children, 
+  footer 
+}: ModalProps) {
   const [mounted, setMounted] = React.useState(false);
   const panelRef = React.useRef<HTMLDivElement>(null);
   const titleId = React.useId();
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
+
+  React.useEffect(() => { setMounted(true); }, []);
+
+  // Focus trap and keyboard handling
   React.useEffect(() => {
     if (!open) return;
+    
     const el = panelRef.current;
     if (!el) return;
+    
+    // Get all focusable elements
     const focusable = el.querySelectorAll<HTMLElement>(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
+    
+    // Focus first element when modal opens
     first?.focus();
+
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose?.();
-      } else if (e.key === "Tab") {
-        if (focusable.length === 0) return;
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last?.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first?.focus();
+      // Escape key handling
+      if (e.key === "Escape" && closeOnEscape) { 
+        e.preventDefault(); 
+        onClose?.(); 
+      }
+      // Tab key handling for focus trap
+      else if (e.key === "Tab") {
+        if (!focusable.length) return;
+        if (e.shiftKey && document.activeElement === first) { 
+          e.preventDefault(); 
+          last?.focus(); 
+        }
+        else if (!e.shiftKey && document.activeElement === last) { 
+          e.preventDefault(); 
+          first?.focus(); 
         }
       }
     }
+    
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
-  if (!mounted) return null;
-  if (!open) return null;
+  }, [open, onClose, closeOnEscape]);
+
+  // Body scroll lock
+  React.useEffect(() => {
+    if (open) {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = 'hidden';
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    }
+    
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    };
+  }, [open]);
+
+  if (!mounted || !open) return null;
+
+  const handleOverlayClick = () => {
+    if (closeOnOverlayClick) {
+      onClose?.();
+    }
+  };
+
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby={title ? titleId : undefined}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={title ? titleId : undefined}
+    >
+      {/* Backdrop with blur effect */}
       <div
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
+        className="absolute inset-0 bg-navy-900/60 backdrop-blur-md transition-opacity duration-[var(--duration-normal)]"
+        onClick={handleOverlayClick}
         aria-hidden="true"
       />
-      <div ref={panelRef} className="relative z-50 w-full max-w-md rounded-lg bg-white p-4 shadow-xl">
-        {title && <div id={titleId} className="mb-2 text-lg font-medium">{title}</div>}
-        <div>{children}</div>
+      {/* Panel with scale-in animation */}
+      <div
+        ref={panelRef}
+        className={`relative z-50 w-full ${sizeClass(size)} rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-2xl animate-scale-in`}
+        style={{
+          animation: 'scaleIn var(--duration-normal) var(--ease-out) forwards'
+        }}
+      >
+        {/* Header */}
+        {(title || (onClose && showCloseButton)) && (
+          <div className="flex items-start justify-between gap-4 border-b border-[var(--surface-border)] px-6 py-4">
+            <div>
+              {title && (
+                <h2 id={titleId} className="text-lg font-semibold text-[var(--foreground)]">
+                  {title}
+                </h2>
+              )}
+              {description && (
+                <p className="mt-0.5 text-sm text-[var(--foreground-muted)]">{description}</p>
+              )}
+            </div>
+            {onClose && showCloseButton && (
+              <button
+                onClick={onClose}
+                className="shrink-0 rounded-xl p-1.5 text-[var(--foreground-muted)] transition-colors duration-[var(--duration-fast)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                aria-label="Close modal"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            )}
+          </div>
+        )}
+        {/* Body */}
+        <div className="px-6 py-5">{children}</div>
+        {/* Footer */}
+        {footer && (
+          <div className="flex items-center justify-end gap-3 border-t border-[var(--surface-border)] px-6 py-4">
+            {footer}
+          </div>
+        )}
       </div>
     </div>,
     document.body
   );
 }
+
+// Named export for compatibility
+export { Modal };
+// Default export
+export default Modal;
