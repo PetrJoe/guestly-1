@@ -136,7 +136,7 @@ export default function HomeClient() {
           </div>
           <Link href="/explore" className="hidden text-sm font-black uppercase tracking-widest text-primary-600 dark:text-primary-400 hover:text-primary-500 transition-colors sm:inline-flex items-center gap-2">
             View all
-            <Icon name="chevron-right" size={16} />
+            <Icon name="arrow-right" size={16} />
           </Link>
         </motion.div>
 
