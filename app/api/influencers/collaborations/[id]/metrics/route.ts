@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { trackInfluencerPerformance } from '@/lib/marketing';
+import { getInfluencerCollaboration } from '@/lib/marketing';
 
 export async function GET(
   req: NextRequest,
@@ -16,9 +16,16 @@ export async function GET(
     }
 
     const { id } = await params;
-    const metrics = trackInfluencerPerformance(id);
+    const collaboration = getInfluencerCollaboration(id);
 
-    return NextResponse.json(metrics);
+    if (!collaboration) {
+      return NextResponse.json(
+        { error: 'Collaboration not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(collaboration.metrics);
   } catch (error) {
     console.error('Error getting collaboration metrics:', error);
     return NextResponse.json(
