@@ -350,6 +350,7 @@ export interface EmailMetrics {
 export interface EmailCampaign {
   id: string;
   campaignId: string;
+  organizerId: string;
   templateId: string;
   subject: string;
   fromName: string;
