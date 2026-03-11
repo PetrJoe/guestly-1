@@ -186,22 +186,18 @@ export default function SettingsPage() {
                       <Input
                         label="Facebook"
                         placeholder="facebook.com/yourpage"
-                        icon="facebook"
                       />
                       <Input
                         label="Twitter"
                         placeholder="twitter.com/yourhandle"
-                        icon="twitter"
                       />
                       <Input
                         label="Instagram"
                         placeholder="instagram.com/yourprofile"
-                        icon="instagram"
                       />
                       <Input
                         label="LinkedIn"
                         placeholder="linkedin.com/company/yourcompany"
-                        icon="linkedin"
                       />
                     </div>
                   </Card>

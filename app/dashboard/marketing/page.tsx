@@ -88,12 +88,19 @@ export default function MarketingPage() {
       case 'influencers':
         return (
           <div className="space-y-6">
-            <InfluencerDiscovery onInvite={() => {}} />
+            <InfluencerDiscovery 
+              organizerId={organizerId}
+              onInvite={() => {}} 
+            />
             <InfluencerCollaboration organizerId={organizerId} />
           </div>
         );
       case 'content':
-        return <BlogPostEditor onSave={() => {}} onCancel={() => {}} />;
+        return <BlogPostEditor 
+          organizerId={organizerId}
+          onSave={() => {}} 
+          onCancel={() => {}} 
+        />;
       case 'ab-testing':
         return <ABTestBuilder campaignId="" onCreateTest={async () => {}} />;
       case 'seo':

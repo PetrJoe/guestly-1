@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    addToSuppressionList(phoneNumber, reason || "user_opt_out");
+    addToSuppressionList(phoneNumber, reason || "user_opt_out", "sms");
 
     return NextResponse.json({
       success: true,

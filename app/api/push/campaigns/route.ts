@@ -24,14 +24,36 @@ export async function POST(req: NextRequest) {
     }
 
     const campaign = createPushCampaign(userId, {
+      organizerId: userId,
       eventId,
       name,
-      title,
-      message,
-      imageUrl,
-      actionUrl,
-      segmentId,
+      description: message,
+      type: 'push',
+      channels: [{ type: 'push', enabled: true, config: {} }],
+      status: scheduledAt ? 'scheduled' : 'draft',
       scheduledAt,
+      budget: 0,
+      spent: 0,
+      content: {
+        push: {
+          title,
+          body: message,
+          imageUrl,
+        },
+      },
+      metrics: {
+        reach: 0,
+        impressions: 0,
+        clicks: 0,
+        conversions: 0,
+        revenue: 0,
+        cost: 0,
+        roi: 0,
+        ctr: 0,
+        conversionRate: 0,
+        cac: 0,
+      },
+      targetAudience: segmentId ? { id: segmentId } as any : undefined,
     });
 
     return NextResponse.json(campaign, { status: 201 });

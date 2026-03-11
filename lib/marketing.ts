@@ -400,6 +400,7 @@ export interface SMSMetrics {
 export interface SMSCampaign {
   id: string;
   campaignId: string;
+  organizerId: string;
   message: string;
   recipients: SMSRecipient[];
   provider: SMSProvider;
@@ -452,6 +453,7 @@ export interface WhatsAppMetrics {
 export interface WhatsAppCampaign {
   id: string;
   campaignId: string;
+  organizerId: string;
   messageType: WhatsAppMessageType;
   content: WhatsAppContent;
   recipients: WhatsAppRecipient[];
@@ -1344,10 +1346,13 @@ const referralProgramSettings: Record<string, ReferralProgramSettings> = {};
 
 export function createCampaign(organizerId: string, data: Omit<Campaign, 'id' | 'createdAt' | 'updatedAt'>): Campaign {
   const campaign: Campaign = {
-    status: 'draft',
-    spent: 0,
-    content: {},
-    metrics: {
+    ...data,
+    id: id('campaign'),
+    organizerId,
+    status: data.status || 'draft',
+    spent: data.spent || 0,
+    content: data.content || {},
+    metrics: data.metrics || {
       reach: 0,
       impressions: 0,
       clicks: 0,
@@ -1359,9 +1364,6 @@ export function createCampaign(organizerId: string, data: Omit<Campaign, 'id' | 
       conversionRate: 0,
       cac: 0,
     },
-    ...data,
-    id: id('campaign'),
-    organizerId,
     createdAt: Date.now(),
     updatedAt: Date.now(),
   };
@@ -1466,11 +1468,11 @@ export function createPromoCode(organizerId: string, data: Omit<PromoCode, 'id' 
   const code = data.code || generateUniquePromoCode();
   
   const promoCode: PromoCode = {
-    active: true,
     ...data,
     code,
     id: id('promo'),
     organizerId,
+    active: data.active !== undefined ? data.active : true,
     usageCount: 0,
     redemptions: [],
     metrics: {
@@ -6371,6 +6373,7 @@ export async function distributeBlogPost(
       
       // Create email campaign for the blog post
       const emailCampaign = createEmailCampaign(campaignId, {
+        organizerId: post.organizerId,
         templateId: emailTemplate.id,
         subject: post.title,
         fromName: 'Guestly',
@@ -9033,7 +9036,7 @@ export function getAffiliatePerformance(affiliateId: string): { clicks: number; 
   
   const conversions = affiliateConversions[affiliateId] || [];
   const totalRevenue = conversions.reduce((sum, c) => sum + c.revenue, 0);
-  const totalCommission = conversions.reduce((sum, c) => sum + c.commission, 0);
+  const totalCommission = conversions.reduce((sum, c) => sum + c.commissionAmount, 0);
   
   return {
     clicks: affiliate.links.reduce((sum, l) => sum + l.clicks, 0),

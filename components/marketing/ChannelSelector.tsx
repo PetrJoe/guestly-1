@@ -141,7 +141,7 @@ export default function ChannelSelector({ selectedChannels, onChange }: ChannelS
                     selected ? 'bg-primary-100 dark:bg-primary-900/40' : 'bg-gray-100 dark:bg-gray-800'
                   }`}
                 >
-                  <Icon name={option.icon} className={`w-5 h-5 ${option.color}`} />
+                  <Icon name={option.icon as any} className={`w-5 h-5 ${option.color}`} />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
@@ -174,7 +174,7 @@ export default function ChannelSelector({ selectedChannels, onChange }: ChannelS
                   className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
                 >
                   <div className="flex items-center gap-3">
-                    <Icon name={option.icon} className={`w-5 h-5 ${option.color}`} />
+                    <Icon name={option.icon as any} className={`w-5 h-5 ${option.color}`} />
                     <span className="font-medium">{option.label}</span>
                   </div>
                   <button

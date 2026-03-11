@@ -33,7 +33,7 @@ export async function POST(
       );
     }
 
-    const result = await sendSMSCampaign(id, campaign.recipients);
+    const result = await sendSMSCampaign(id);
 
     return NextResponse.json(result);
   } catch (error) {

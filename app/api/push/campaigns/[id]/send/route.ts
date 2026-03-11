@@ -33,7 +33,9 @@ export async function POST(
       );
     }
 
-    const result = await sendPushNotification(id, campaign.segmentId);
+    const result = await sendPushNotification(id, {
+      segmentId: campaign.targetAudience?.id
+    });
 
     return NextResponse.json(result);
   } catch (error) {

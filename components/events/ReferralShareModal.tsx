@@ -77,7 +77,7 @@ export function ReferralShareModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Share & Earn Rewards">
+    <Modal open={isOpen} onClose={onClose} title="Share & Earn Rewards">
       <div className="space-y-6">
         <Card className="p-4 bg-gradient-to-r from-blue-50 to-purple-50">
           <h3 className="font-semibold mb-2">🎁 Earn rewards for every referral!</h3>

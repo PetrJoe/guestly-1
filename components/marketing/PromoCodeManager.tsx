@@ -109,7 +109,7 @@ export default function PromoCodeManager({ organizerId, eventId }: PromoCodeMana
         placeholder="Search promo codes..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        prefix={<Icon name="search" className="w-5 h-5 text-gray-400" />}
+        leftIcon={<Icon name="search" className="w-5 h-5 text-gray-400" />}
       />
 
       {/* Promo Codes List */}
@@ -232,7 +232,7 @@ export default function PromoCodeManager({ organizerId, eventId }: PromoCodeMana
 
       {/* Stats Modal */}
       <Modal
-        isOpen={!!selectedPromoCode}
+        open={!!selectedPromoCode}
         onClose={() => setSelectedPromoCode(null)}
         title={`Promo Code: ${selectedPromoCode?.code}`}
       >

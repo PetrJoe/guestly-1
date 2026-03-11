@@ -89,7 +89,7 @@ export default function FunnelVisualization({ stages }: Props) {
               {/* Stage header */}
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
-                  <Icon name={getStageIcon(stage.stage)} className="w-4 h-4 text-gray-600" />
+                  <Icon name={getStageIcon(stage.stage) as any} className="w-4 h-4 text-gray-600" />
                   <span className="font-medium text-gray-900">{stage.stage}</span>
                 </div>
                 <div className="flex items-center gap-3 text-xs">

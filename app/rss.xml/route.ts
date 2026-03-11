@@ -23,7 +23,6 @@ export async function GET() {
       <description>${escapeXml(post.excerpt || '')}</description>
       <pubDate>${new Date(post.publishedAt || post.createdAt).toUTCString()}</pubDate>
       <guid>https://guestly.com/blog/${post.slug}</guid>
-      ${post.author ? `<author>${escapeXml(post.author)}</author>` : ''}
       ${post.tags?.map((tag) => `<category>${escapeXml(tag)}</category>`).join('\n      ') || ''}
     </item>`
       )

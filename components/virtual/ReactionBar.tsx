@@ -145,7 +145,7 @@ export default function ReactionBar({ eventId, userId, variant = 'default', show
             }}
           >
             <Icon 
-              name={REACTION_CONFIG[reaction.type].icon} 
+              name={REACTION_CONFIG[reaction.type].icon as any} 
               className={`${isCompact ? 'w-8 h-8' : 'w-12 h-12'} text-primary-500`}
             />
           </div>
@@ -167,7 +167,7 @@ export default function ReactionBar({ eventId, userId, variant = 'default', show
             title={userId ? `React with ${REACTION_CONFIG[type].label}` : "Sign in to react"}
           >
             <Icon 
-              name={REACTION_CONFIG[type].icon} 
+              name={REACTION_CONFIG[type].icon as any} 
               className={`${isCompact ? 'w-5 h-5' : 'w-6 h-6'} transition-transform group-hover:scale-125 ${
                 animatingReaction === type ? "animate-pulse text-primary-500" : "text-foreground"
               }`}

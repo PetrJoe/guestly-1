@@ -141,7 +141,7 @@ export default function AdCampaignBuilder({
                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                     }`}
                   >
-                    <Icon name={obj.icon} className="w-6 h-6 mx-auto mb-2" />
+                    <Icon name={obj.icon as any} className="w-6 h-6 mx-auto mb-2" />
                     <div className="text-sm font-medium">{obj.label}</div>
                   </button>
                 ))}
@@ -344,7 +344,7 @@ export default function AdCampaignBuilder({
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
                 }`}
               >
-                <Icon name={step.icon} className="w-5 h-5" />
+                <Icon name={step.icon as any} className="w-5 h-5" />
               </div>
               <div className="ml-2 flex-1">
                 <p

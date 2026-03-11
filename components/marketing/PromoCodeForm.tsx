@@ -210,8 +210,8 @@ export default function PromoCodeForm({
                 value={formData.value}
                 onChange={(e) => setFormData({ ...formData, value: e.target.value })}
                 placeholder={formData.type === 'percentage' ? '10' : '5.00'}
-                prefix={formData.type === 'fixed' ? '$' : undefined}
-                suffix={formData.type === 'percentage' ? '%' : undefined}
+                leftIcon={formData.type === 'fixed' ? <span className="text-gray-500">$</span> : undefined}
+                rightIcon={formData.type === 'percentage' ? <span className="text-gray-500">%</span> : undefined}
                 min="0"
                 max={formData.type === 'percentage' ? '100' : undefined}
                 step={formData.type === 'fixed' ? '0.01' : '1'}

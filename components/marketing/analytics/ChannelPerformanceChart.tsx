@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { Icon } from '@/components/ui/Icon';
 
 interface ChannelPerformance {
   channel: string;
@@ -78,7 +79,7 @@ export default function ChannelPerformanceChart({ channels }: Props) {
           <div key={channel.channel} className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Icon name={getChannelIcon(channel.channel)} className="w-5 h-5 text-primary-500" />
+                <Icon name={getChannelIcon(channel.channel) as any} className="w-5 h-5 text-primary-500" />
                 <span className="font-medium text-gray-900 capitalize">{channel.channel}</span>
               </div>
               <div className="flex items-center gap-4 text-sm">
@@ -131,7 +132,7 @@ export default function ChannelPerformanceChart({ channels }: Props) {
               <tr key={channel.channel} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="py-3 px-2">
                   <div className="flex items-center gap-2">
-                    <Icon name={getChannelIcon(channel.channel)} className="w-4 h-4 text-gray-600" />
+                    <Icon name={getChannelIcon(channel.channel) as any} className="w-4 h-4 text-gray-600" />
                     <span className="font-medium capitalize">{channel.channel}</span>
                   </div>
                 </td>

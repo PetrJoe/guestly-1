@@ -16,7 +16,6 @@ interface AffiliateDashboardProps {
 export default function AffiliateDashboard({ userId }: AffiliateDashboardProps) {
   const [affiliate, setAffiliate] = useState<Affiliate | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'links' | 'payouts'>('overview');
 
   useEffect(() => {
     fetchAffiliateData();
@@ -182,83 +181,74 @@ export default function AffiliateDashboard({ userId }: AffiliateDashboardProps) 
 
       {/* Tabs */}
       <Tabs
-        value={activeTab}
-        onChange={(value) => setActiveTab(value as typeof activeTab)}
         tabs={[
-          { value: 'overview', label: 'Overview' },
-          { value: 'links', label: 'Affiliate Links' },
-          { value: 'payouts', label: 'Payout History' },
-        ]}
-      />
+          { id: 'overview', label: 'Overview', content: (
+            <div className="space-y-6">
+              <AffiliatePerformance affiliateId={affiliate.id} />
 
-      {/* Content */}
-      {activeTab === 'overview' && (
-        <div className="space-y-6">
-          <AffiliatePerformance affiliateId={affiliate.id} />
-
-          {/* Commission Info */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Commission Details</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Commission Rate</span>
-                <span className="font-bold text-primary-500">{affiliate.commissionRate}%</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Cookie Duration</span>
-                <span className="font-medium">{affiliate.cookieDuration} days</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Active Links</span>
-                <span className="font-medium">{affiliate.links.length}</span>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {activeTab === 'links' && (
-        <div className="space-y-4">
-          {affiliate.links.length === 0 ? (
-            <Card className="p-12 text-center">
-              <span className="text-6xl mb-4 block">🔗</span>
-              <h3 className="text-xl font-semibold mb-2">No affiliate links yet</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Generate affiliate links for events to start earning
-              </p>
-            </Card>
-          ) : (
-            affiliate.links.map((link) => (
-              <Card key={link.id} className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-semibold">Event #{link.eventId}</h4>
-                  <code className="text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                    {link.code}
-                  </code>
-                </div>
-                <Input value={link.url} readOnly className="font-mono text-sm mb-2" />
-                <div className="flex gap-4 text-sm text-gray-600 dark:text-gray-400">
-                  <span>{link.clicks} clicks</span>
-                  <span>{link.conversions} conversions</span>
-                  <span className="text-green-500 font-medium">
-                    ${link.earned.toFixed(2)} earned
-                  </span>
+              {/* Commission Info */}
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Commission Details</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Commission Rate</span>
+                    <span className="font-bold text-primary-500">{affiliate.commissionRate}%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Cookie Duration</span>
+                    <span className="font-medium">{affiliate.cookieDuration} days</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Active Links</span>
+                    <span className="font-medium">{affiliate.links.length}</span>
+                  </div>
                 </div>
               </Card>
-            ))
+            </div>
+          )},
+          { id: 'links', label: 'Affiliate Links', content: (
+            <div className="space-y-4">
+              {affiliate.links.length === 0 ? (
+                <Card className="p-12 text-center">
+                  <span className="text-6xl mb-4 block">🔗</span>
+                  <h3 className="text-xl font-semibold mb-2">No affiliate links yet</h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Generate affiliate links for events to start earning
+                  </p>
+                </Card>
+              ) : (
+                affiliate.links.map((link) => (
+                  <Card key={link.id} className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">Event #{link.eventId}</h4>
+                      <code className="text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                        {link.code}
+                      </code>
+                    </div>
+                    <Input value={link.url} readOnly className="font-mono text-sm mb-2" />
+                    <div className="flex gap-4 text-sm text-gray-600 dark:text-gray-400">
+                      <span>{link.clicks} clicks</span>
+                      <span>{link.conversions} conversions</span>
+                      <span className="text-green-500 font-medium">
+                        ${(link as any).earned?.toFixed(2) || '0.00'} earned
+                      </span>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          )},
+          { id: 'payouts', label: 'Payout History', content: (
+            <Card className="p-12 text-center">
+              <Icon name="credit-card" className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-xl font-semibold mb-2">No payout history</h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Your payout requests will appear here
+              </p>
+            </Card>
           )}
-        </div>
-      )}
-
-      {activeTab === 'payouts' && (
-        <Card className="p-12 text-center">
-          <Icon name="credit-card" className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-xl font-semibold mb-2">No payout history</h3>
-          <p className="text-gray-600 dark:text-gray-400">
-            Your payout requests will appear here
-          </p>
-        </Card>
-      )}
+        ]}
+      />
     </div>
   );
 }

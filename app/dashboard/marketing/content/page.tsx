@@ -1,13 +1,38 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Icon } from '@/components/ui/Icon';
 import { BlogPostEditor } from '@/components/marketing/BlogPostEditor';
 import { ContentDistributor } from '@/components/marketing/ContentDistributor';
 
 export default function ContentMarketingPage() {
-  const [organizerId] = useState('org_123');
+  const [organizerId, setOrganizerId] = useState<string>('');
   const [showEditor, setShowEditor] = useState(false);
+
+  useEffect(() => {
+    // Get user ID from cookies
+    const cookies = document.cookie.split(";");
+    const userIdCookie = cookies.find((c) => c.trim().startsWith("user_id="));
+    
+    if (userIdCookie) {
+      const id = userIdCookie.split("=")[1];
+      setOrganizerId(id);
+    }
+  }, []);
+
+  const handleDistribute = async (channels: string[]) => {
+    try {
+      // Handle content distribution logic here
+      console.log('Distributing to channels:', channels);
+      // You could make an API call here to distribute the content
+    } catch (error) {
+      console.error('Failed to distribute content:', error);
+    }
+  };
+
+  if (!organizerId) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -28,7 +53,11 @@ export default function ContentMarketingPage() {
       </div>
 
       {showEditor ? (
-        <BlogPostEditor organizerId={organizerId} />
+        <BlogPostEditor 
+          organizerId={organizerId}
+          onSave={() => setShowEditor(false)}
+          onCancel={() => setShowEditor(false)}
+        />
       ) : (
         <div className="space-y-6">
           {/* Blog Posts List */}
@@ -63,7 +92,7 @@ export default function ContentMarketingPage() {
             </div>
           </div>
 
-          <ContentDistributor postId="post_123" />
+          <ContentDistributor postId="post_123" onDistribute={handleDistribute} />
         </div>
       )}
     </div>

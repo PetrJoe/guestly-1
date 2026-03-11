@@ -31,6 +31,7 @@ interface EmailCampaignFormData {
 }
 
 interface EmailCampaignFormProps {
+  organizerId: string;
   events: Array<{ id: string; name: string }>;
   templates: Array<{ id: string; name: string; subject: string }>;
   onSubmit: (data: EmailCampaignFormData) => void;
@@ -39,6 +40,7 @@ interface EmailCampaignFormProps {
 }
 
 export function EmailCampaignForm({
+  organizerId,
   events,
   templates,
   onSubmit,

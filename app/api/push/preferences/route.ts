@@ -16,10 +16,12 @@ export async function PATCH(req: NextRequest) {
     const { enablePromotional, enableTransactional, enableEventUpdates, enableReminders } = body;
 
     const preferences = updateNotificationPreferences(userId, {
-      enablePromotional,
-      enableTransactional,
-      enableEventUpdates,
-      enableReminders,
+      categories: {
+        promotional: enablePromotional,
+        transactional: enableTransactional,
+        eventUpdates: enableEventUpdates,
+        reminders: enableReminders,
+      },
     });
 
     return NextResponse.json(preferences);

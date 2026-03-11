@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getWhatsAppCampaign, sendWhatsAppMessage } from "@/lib/marketing";
+import { getWhatsAppCampaign, sendWhatsAppCampaign } from "@/lib/marketing";
 
 export async function POST(
   req: NextRequest,
@@ -33,7 +33,7 @@ export async function POST(
       );
     }
 
-    const result = await sendWhatsAppMessage(id, campaign.recipients);
+    const result = await sendWhatsAppCampaign(id);
 
     return NextResponse.json(result);
   } catch (error) {

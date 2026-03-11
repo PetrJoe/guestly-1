@@ -24,12 +24,14 @@ export async function POST(req: NextRequest) {
     }
 
     const campaign = createSMSCampaign(userId, {
-      eventId,
-      name,
+      organizerId: userId,
       message,
       recipients,
+      provider: 'twilio',
       scheduledAt,
-      costLimit,
+      status: scheduledAt ? 'scheduled' : 'draft',
+      estimatedCost: costLimit || 0,
+      actualCost: 0,
     });
 
     return NextResponse.json(campaign, { status: 201 });

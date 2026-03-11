@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 
 interface BlogPostEditorProps {
+  organizerId: string;
   initialData?: {
     title: string;
     content: string;
@@ -17,7 +18,7 @@ interface BlogPostEditorProps {
   onCancel: () => void;
 }
 
-export function BlogPostEditor({ initialData, onSave, onCancel }: BlogPostEditorProps) {
+export function BlogPostEditor({ organizerId, initialData, onSave, onCancel }: BlogPostEditorProps) {
   const [title, setTitle] = useState(initialData?.title || '');
   const [content, setContent] = useState(initialData?.content || '');
   const [excerpt, setExcerpt] = useState(initialData?.excerpt || '');

@@ -24,13 +24,16 @@ export async function POST(req: NextRequest) {
     }
 
     const campaign = createWhatsAppCampaign(userId, {
-      eventId,
-      name,
-      message,
+      organizerId: userId,
+      messageType: 'text',
+      content: {
+        text: message,
+        mediaUrl,
+        buttons,
+      },
       recipients,
-      mediaUrl,
-      buttons,
       scheduledAt,
+      status: scheduledAt ? 'scheduled' : 'draft',
     });
 
     return NextResponse.json(campaign, { status: 201 });

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Icon } from '@/components/ui/Icon';
 
 interface ContentDistributorProps {
   postId: string;
@@ -56,7 +57,7 @@ export function ContentDistributor({ postId, onDistribute }: ContentDistributorP
               onChange={() => toggleChannel(channel.id)}
               className="w-4 h-4"
             />
-            <Icon name={channel.icon} className="w-5 h-5 text-gray-600" />
+            <Icon name={channel.icon as any} className="w-5 h-5 text-gray-600" />
             <span className="font-medium">{channel.name}</span>
           </label>
         ))}

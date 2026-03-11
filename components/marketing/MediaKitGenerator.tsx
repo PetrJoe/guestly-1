@@ -39,10 +39,11 @@ interface MediaKitData {
 }
 
 interface MediaKitGeneratorProps {
+  organizerId: string;
   eventId: string;
 }
 
-export function MediaKitGenerator({ eventId }: MediaKitGeneratorProps) {
+export function MediaKitGenerator({ organizerId, eventId }: MediaKitGeneratorProps) {
   const [mediaKit, setMediaKit] = useState<MediaKitData | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);

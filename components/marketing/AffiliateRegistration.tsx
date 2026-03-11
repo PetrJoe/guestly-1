@@ -210,7 +210,7 @@ export default function AffiliateRegistration({ userId, onSuccess }: AffiliateRe
                           : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                       }`}
                     >
-                      <Icon name={option.icon} className="w-6 h-6 mx-auto mb-1" />
+                      <Icon name={option.icon as any} className="w-6 h-6 mx-auto mb-1" />
                       <p className="text-xs font-medium">{option.label}</p>
                     </button>
                   ))}
@@ -256,7 +256,7 @@ export default function AffiliateRegistration({ userId, onSuccess }: AffiliateRe
                           : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                       }`}
                     >
-                      <Icon name={method.icon} className="w-6 h-6 mx-auto mb-2" />
+                      <Icon name={method.icon as any} className="w-6 h-6 mx-auto mb-2" />
                       <p className="text-sm font-medium">{method.label}</p>
                     </button>
                   ))}

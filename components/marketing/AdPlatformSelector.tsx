@@ -68,7 +68,7 @@ export default function AdPlatformSelector({
                 <div
                   className={`flex items-center justify-center w-16 h-16 rounded-full mx-auto mb-3 ${platform.bgColor}`}
                 >
-                  <Icon name={platform.icon} className={`w-8 h-8 ${platform.color}`} />
+                  <Icon name={platform.icon as any} className={`w-8 h-8 ${platform.color}`} />
                 </div>
                 <h4 className="font-semibold mb-1">{platform.name}</h4>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">

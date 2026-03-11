@@ -252,7 +252,7 @@ export default function OrganiserSubscriptionPage() {
                   <Button
                     onClick={() => activate(plan.key)}
                     disabled={loading}
-                    variant={isPopular ? "default" : "outline"}
+                    variant={isPopular ? "primary" : "outline"}
                     className="w-full mb-4"
                   >
                     {loading ? (

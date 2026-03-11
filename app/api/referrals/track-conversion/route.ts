@@ -6,14 +6,14 @@ export async function POST(req: NextRequest) {
     const data = await req.json();
 
     // Validate required fields
-    if (!data.referralCode || !data.orderId || data.amount === undefined) {
+    if (!data.referralCode || !data.orderId || !data.referredUserId || data.amount === undefined) {
       return NextResponse.json(
-        { error: 'Missing required fields: referralCode, orderId, amount' },
+        { error: 'Missing required fields: referralCode, orderId, referredUserId, amount' },
         { status: 400 }
       );
     }
 
-    trackReferralConversion(data.referralCode, data.orderId, data.amount);
+    trackReferralConversion(data.referralCode, data.orderId, data.referredUserId, data.amount);
 
     return NextResponse.json({ success: true });
   } catch (error) {

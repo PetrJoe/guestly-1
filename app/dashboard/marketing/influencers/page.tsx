@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Icon } from '@/components/ui/Icon';
 import { InfluencerDiscovery } from '@/components/marketing/InfluencerDiscovery';
 import { InfluencerInviteForm } from '@/components/marketing/InfluencerInviteForm';
@@ -11,8 +11,23 @@ import InfluencerSearch from '@/components/marketing/InfluencerSearch';
 type InfluencerTab = 'discover' | 'collaborations' | 'media-kit';
 
 export default function InfluencersPage() {
-  const [organizerId] = useState('org_123');
+  const [organizerId, setOrganizerId] = useState<string>('');
   const [activeTab, setActiveTab] = useState<InfluencerTab>('discover');
+
+  useEffect(() => {
+    // Get user ID from cookies
+    const cookies = document.cookie.split(";");
+    const userIdCookie = cookies.find((c) => c.trim().startsWith("user_id="));
+    
+    if (userIdCookie) {
+      const id = userIdCookie.split("=")[1];
+      setOrganizerId(id);
+    }
+  }, []);
+
+  if (!organizerId) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -68,7 +83,10 @@ export default function InfluencersPage() {
       {activeTab === 'discover' && (
         <div className="space-y-6">
           <InfluencerSearch organizerId={organizerId} />
-          <InfluencerDiscovery organizerId={organizerId} />
+          <InfluencerDiscovery 
+            organizerId={organizerId}
+            onInvite={() => {}}
+          />
         </div>
       )}
 

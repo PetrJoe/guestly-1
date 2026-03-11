@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateSEOMetadata } from '@/lib/marketing';
+import { getEventById } from '@/lib/events';
 
 export async function GET(
   req: NextRequest,
@@ -15,14 +16,24 @@ export async function GET(
       );
     }
 
-    const metadata = generateSEOMetadata(eventId);
+    const event = getEventById(eventId);
 
-    if (!metadata) {
+    if (!event) {
       return NextResponse.json(
         { error: 'Event not found' },
         { status: 404 }
       );
     }
+
+    const metadata = generateSEOMetadata(eventId, {
+      title: event.title,
+      description: event.description,
+      image: event.image,
+      date: new Date(event.date).toISOString(),
+      venue: event.venue || event.city,
+      city: event.city,
+      country: event.country,
+    });
 
     return NextResponse.json(metadata);
   } catch (error) {

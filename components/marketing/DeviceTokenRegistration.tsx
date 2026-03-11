@@ -53,7 +53,7 @@ export function DeviceTokenRegistration({ userId, onSuccess }: DeviceTokenRegist
         // Get push subscription
         const subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ''),
+          applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '') as any,
         });
 
         // Extract device token from subscription

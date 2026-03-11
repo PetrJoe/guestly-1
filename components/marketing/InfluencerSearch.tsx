@@ -3,6 +3,10 @@
 import { useState } from 'react';
 import Button from '@/components/ui/Button';
 
+interface InfluencerSearchProps {
+  organizerId: string;
+}
+
 interface Influencer {
   id: string;
   name: string;
@@ -43,7 +47,7 @@ const mockInfluencers: Influencer[] = [
   },
 ];
 
-export default function InfluencerSearch() {
+export default function InfluencerSearch({ organizerId }: InfluencerSearchProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     location: '',

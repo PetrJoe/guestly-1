@@ -129,7 +129,7 @@ export default function SocialPostComposer({
                     : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                 }`}
               >
-                <Icon name={config.icon} className="w-4 h-4" />
+                <Icon name={config.icon as any} className="w-4 h-4" />
                 <span className="text-sm font-medium">{config.label}</span>
                 {selected && <Icon name="check" className="w-4 h-4" />}
               </button>

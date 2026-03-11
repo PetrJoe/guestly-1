@@ -4,13 +4,14 @@ import { useState } from 'react';
 import { Icon } from '@/components/ui/Icon';
 
 interface InfluencerInviteFormProps {
+  organizerId: string;
   eventId: string;
   influencerId?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export function InfluencerInviteForm({ eventId, influencerId, onSuccess, onCancel }: InfluencerInviteFormProps) {
+export function InfluencerInviteForm({ organizerId, eventId, influencerId, onSuccess, onCancel }: InfluencerInviteFormProps) {
   const [formData, setFormData] = useState({
     influencerEmail: '',
     influencerName: '',

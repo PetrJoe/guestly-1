@@ -18,10 +18,11 @@ interface Influencer {
 }
 
 interface InfluencerDiscoveryProps {
+  organizerId: string;
   onInvite: (influencerId: string) => void;
 }
 
-export function InfluencerDiscovery({ onInvite }: InfluencerDiscoveryProps) {
+export function InfluencerDiscovery({ organizerId, onInvite }: InfluencerDiscoveryProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     platform: 'all',
@@ -202,7 +203,7 @@ export function InfluencerDiscovery({ onInvite }: InfluencerDiscoveryProps) {
                     )}
                   </div>
                   <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center border-2 border-white">
-                    <Icon name={getPlatformIcon(influencer.platform)} className="w-3 h-3 text-gray-600" />
+                    <Icon name={getPlatformIcon(influencer.platform) as any} className="w-3 h-3 text-gray-600" />
                   </div>
                 </div>
 
@@ -210,7 +211,7 @@ export function InfluencerDiscovery({ onInvite }: InfluencerDiscoveryProps) {
                   <div className="flex items-center gap-2 mb-1">
                     <h4 className="text-base font-semibold text-gray-900">{influencer.name}</h4>
                     {influencer.verified && (
-                      <Icon name="check-circle" className="w-4 h-4 text-primary-500" title="Verified" />
+                      <Icon name="check-circle" className="w-4 h-4 text-primary-500" />
                     )}
                   </div>
                   <p className="text-sm text-gray-600 mb-2">{influencer.username}</p>

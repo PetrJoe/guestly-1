@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Icon } from '@/components/ui/Icon';
 import { EmailTemplateLibrary } from '@/components/marketing/EmailTemplateLibrary';
 import { EmailTemplateBuilder } from '@/components/marketing/EmailTemplateBuilder';
@@ -10,11 +10,22 @@ import EmailMetricsPanel from '@/components/marketing/EmailMetricsPanel';
 type EmailTab = 'templates' | 'campaigns' | 'metrics';
 
 export default function EmailMarketingPage() {
-  const [organizerId] = useState('org_123');
+  const [organizerId, setOrganizerId] = useState<string>('');
   const [activeTab, setActiveTab] = useState<EmailTab>('templates');
   const [customTemplates, setCustomTemplates] = useState<any[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [showBuilder, setShowBuilder] = useState(false);
+
+  useEffect(() => {
+    // Get user ID from cookies
+    const cookies = document.cookie.split(";");
+    const userIdCookie = cookies.find((c) => c.trim().startsWith("user_id="));
+    
+    if (userIdCookie) {
+      const id = userIdCookie.split("=")[1];
+      setOrganizerId(id);
+    }
+  }, []);
 
   const handleSelectTemplate = (template: any) => {
     setSelectedTemplate(template);
@@ -40,6 +51,10 @@ export default function EmailMarketingPage() {
     }
     setShowBuilder(false);
   };
+
+  if (!organizerId) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -113,7 +128,13 @@ export default function EmailMarketingPage() {
       )}
 
       {activeTab === 'campaigns' && (
-        <EmailCampaignForm organizerId={organizerId} />
+        <EmailCampaignForm 
+          organizerId={organizerId}
+          events={[]}
+          templates={[]}
+          onSubmit={() => {}}
+          onCancel={() => {}}
+        />
       )}
 
       {activeTab === 'metrics' && (

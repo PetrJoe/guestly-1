@@ -14,16 +14,16 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { eventId, platforms } = body;
+    const { eventId, platforms, eventData } = body;
 
-    if (!eventId || !platforms || !Array.isArray(platforms)) {
+    if (!eventId || !platforms || !Array.isArray(platforms) || !eventData) {
       return NextResponse.json(
-        { error: 'Event ID and platforms array are required' },
+        { error: 'Event ID, platforms array, and eventData are required' },
         { status: 400 }
       );
     }
 
-    const result = await scheduleAutoPost(eventId, platforms);
+    const result = await scheduleAutoPost(eventId, platforms, eventData);
 
     return NextResponse.json({
       success: true,

@@ -257,7 +257,7 @@ export default function CampaignBuilder({
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
                 }`}
               >
-                <Icon name={step.icon} className="w-5 h-5" />
+                <Icon name={step.icon as any} className="w-5 h-5" />
               </div>
               <div className="ml-2 flex-1">
                 <p

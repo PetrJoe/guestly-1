@@ -89,7 +89,7 @@ export default function PromoCodeStats({ promoCodeId }: PromoCodeStatsProps) {
           <Card key={stat.label} className="p-4">
             <div className="flex items-start justify-between mb-2">
               <p className="text-xs text-gray-600 dark:text-gray-400">{stat.label}</p>
-              <Icon name={stat.icon} className={`w-4 h-4 ${stat.color}`} />
+              <Icon name={stat.icon as any} className={`w-4 h-4 ${stat.color}`} />
             </div>
             <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>
           </Card>

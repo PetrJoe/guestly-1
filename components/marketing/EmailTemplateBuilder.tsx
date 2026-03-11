@@ -14,6 +14,7 @@ interface EmailBlock {
 }
 
 interface EmailTemplateBuilderProps {
+  organizerId: string;
   initialTemplate?: {
     name: string;
     subject: string;
@@ -23,7 +24,7 @@ interface EmailTemplateBuilderProps {
   onCancel: () => void;
 }
 
-export function EmailTemplateBuilder({ initialTemplate, onSave, onCancel }: EmailTemplateBuilderProps) {
+export function EmailTemplateBuilder({ organizerId, initialTemplate, onSave, onCancel }: EmailTemplateBuilderProps) {
   const [templateName, setTemplateName] = useState(initialTemplate?.name || '');
   const [subject, setSubject] = useState(initialTemplate?.subject || '');
   const [blocks, setBlocks] = useState<EmailBlock[]>(initialTemplate?.blocks || []);

@@ -38,44 +38,27 @@ export default function EventInsightsPage({ params }: { params: Promise<{ id: st
     }
   };
 
-  // Mock data for charts
-  const ticketSalesData = {
-    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-    datasets: [
-      {
-        label: 'Tickets Sold',
-        data: [12, 35, 58, 89],
-        borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-      },
-    ],
-  };
+  // Mock data for charts - converted to expected formats
+  const ticketSalesData = [
+    { label: 'Week 1', value: 12 },
+    { label: 'Week 2', value: 35 },
+    { label: 'Week 3', value: 58 },
+    { label: 'Week 4', value: 89 },
+  ];
 
-  const revenueData = {
-    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-    datasets: [
-      {
-        label: 'Revenue (₦)',
-        data: [120000, 350000, 580000, 890000],
-        backgroundColor: 'rgba(34, 197, 94, 0.8)',
-      },
-    ],
-  };
+  const revenueData = [
+    { label: 'Week 1', value: 120000 },
+    { label: 'Week 2', value: 350000 },
+    { label: 'Week 3', value: 580000 },
+    { label: 'Week 4', value: 890000 },
+  ];
 
-  const ticketTypeData = {
-    labels: ['General', 'VIP', 'Early Bird', 'Group'],
-    datasets: [
-      {
-        data: [45, 25, 20, 10],
-        backgroundColor: [
-          'rgba(59, 130, 246, 0.8)',
-          'rgba(168, 85, 247, 0.8)',
-          'rgba(34, 197, 94, 0.8)',
-          'rgba(251, 146, 60, 0.8)',
-        ],
-      },
-    ],
-  };
+  const ticketTypeData = [
+    { label: 'General', value: 45 },
+    { label: 'VIP', value: 25 },
+    { label: 'Early Bird', value: 20 },
+    { label: 'Group', value: 10 },
+  ];
 
   const stats = [
     { label: 'Total Tickets Sold', value: '194', change: '+12%', icon: 'ticket' as const },

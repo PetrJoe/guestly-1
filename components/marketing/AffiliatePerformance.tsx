@@ -142,7 +142,7 @@ export default function AffiliatePerformance({ affiliateId }: AffiliatePerforman
           <Card key={metric.label} className="p-4">
             <div className="flex items-start justify-between mb-2">
               <p className="text-xs text-gray-600 dark:text-gray-400">{metric.label}</p>
-              <Icon name={metric.icon} className={`w-4 h-4 ${metric.color}`} />
+              <Icon name={metric.icon as any} className={`w-4 h-4 ${metric.color}`} />
             </div>
             <p className={`text-xl font-bold ${metric.color}`}>{metric.value}</p>
           </Card>
