@@ -75,7 +75,7 @@ export default function AttendeePage() {
             },
             { 
               label: "Saved", 
-              value: saved.length, 
+              value: savedEvents.length, 
               icon: "heart" as const,
               bg: "bg-danger-50 dark:bg-danger-900/20",
               color: "text-danger-600 dark:text-danger-400",
@@ -168,9 +168,9 @@ export default function AttendeePage() {
               {events.map((e) => (
                 <EventCard
                   key={e.id}
-                  id={e.id}
+                  id={String(e.id)}
                   title={e.title}
-                  description={e.description}
+                  description={(e as { description?: string }).description ?? ""}
                   date={e.date}
                   city={e.city}
                   category={e.category}
