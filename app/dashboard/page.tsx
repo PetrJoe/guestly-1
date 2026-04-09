@@ -5,9 +5,7 @@ import Card from "@/components/ui/Card";
 import Link from "next/link";
 import Image from "next/image";
 import Icon from "@/components/ui/Icon";
-import { events } from "@/lib/events";
 import { RevenueWidget } from "@/components/organiser/widgets/RevenueWidget";
-import { RealTimeFeed } from "@/components/organiser/widgets/RealTimeFeed";
 import { QuickActionCards } from "@/components/organiser/widgets/QuickActionCards";
 import { SettlementWidget } from "@/components/organiser/widgets/SettlementWidget";
 import { MerchandiseWidget } from "@/components/organiser/widgets/MerchandiseWidget";
@@ -113,28 +111,30 @@ const quickActions = [
 ];
 
 export default function DashboardPage() {
-  const recent = events.slice(0, 4);
+  const [recent, setRecent] = useState<Array<{id:number;title:string;date:string;city:string;image:string}>>([]);
+  const [analytics, setAnalytics] = useState<{totalRevenue:number;totalTickets:number;total_events:number;total_orders:number}|null>(null);
   const [merchStats, setMerchStats] = useState<{
     totalProducts: number;
     unitsSold: number;
     revenue: number;
-    bestSellers: Array<{
-      id: string;
-      name: string;
-      sold: number;
-      revenue: number;
-      image: string;
-      eventId: string;
-    }>;
+    bestSellers: Array<{ id: string; name: string; sold: number; revenue: number; image: string; eventId: string; }>;
   } | null>(null);
 
   useEffect(() => {
-    // Fetch merchandise stats
+    fetch("/api/events?mine=true&pageSize=4")
+      .then(r => r.json()).then(d => setRecent(d.data ?? [])).catch(() => {});
+    fetch("/api/analytics/")
+      .then(r => r.json()).then(d => setAnalytics(d)).catch(() => {});
     fetch("/api/merch?stats=true")
-      .then((res) => res.json())
-      .then((data) => setMerchStats(data))
-      .catch((err) => console.error("Failed to fetch merch stats:", err));
+      .then(r => r.json()).then(d => setMerchStats(d)).catch(() => {});
   }, []);
+
+  const liveStats = analytics ? [
+    { label: "Total Revenue", value: `₦${(analytics.totalRevenue/1000000).toFixed(1)}M`, change: "+12.5%", up: true, iconName: "money" as const, bg: "bg-success-50 dark:bg-success-900/20", color: "text-success-600 dark:text-success-400" },
+    { label: "Tickets Sold", value: analytics.totalTickets.toLocaleString(), change: "+8.2%", up: true, iconName: "ticket" as const, bg: "bg-primary-50 dark:bg-primary-900/20", color: "text-primary-600 dark:text-primary-400" },
+    { label: "Total Events", value: String(analytics.total_events), change: "active", up: null, iconName: "calendar" as const, bg: "bg-warning-50 dark:bg-warning-900/20", color: "text-warning-600 dark:text-warning-400" },
+    { label: "Orders", value: analytics.total_orders.toLocaleString(), change: "+24.1%", up: true, iconName: "users" as const, bg: "bg-navy-100 dark:bg-navy-900/20", color: "text-navy-700 dark:text-navy-300" },
+  ] : stats;
 
   return (
     <ProtectedRoute allowRoles={["organiser"]}>
@@ -160,7 +160,7 @@ export default function DashboardPage() {
 
         {/* Stats Grid - 4 columns on desktop, 2 on tablet, 1 on mobile */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
+          {liveStats.map((stat) => (
             <Card 
               key={stat.label} 
               variant="elevated" 

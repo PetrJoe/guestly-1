@@ -1,29 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSocialAccounts } from '@/lib/store';
+import { NextRequest } from "next/server";
+import { proxy } from "@/lib/proxy";
 
 export async function GET(req: NextRequest) {
-  try {
-    // Get organizerId from cookie or query param
-    const organizerId = req.cookies.get('user_id')?.value;
-
-    if (!organizerId) {
-      return NextResponse.json(
-        { success: false, error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
-
-    const accounts = getSocialAccounts(organizerId);
-
-    return NextResponse.json({
-      success: true,
-      accounts,
-    });
-  } catch (error: any) {
-    console.error('Get social accounts error:', error);
-    return NextResponse.json(
-      { success: false, error: error.message || 'Failed to get accounts' },
-      { status: 500 }
-    );
-  }
+  const res = await proxy(req, "/social/accounts/");
+  const data = await res.json().catch(() => null);
+  if (!data) return res;
+  const list = Array.isArray(data) ? data : data.data ?? [];
+  return Response.json({ accounts: list, data: list });
 }

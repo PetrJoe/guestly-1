@@ -1,24 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getDiscussionThread, listThreadReplies } from "@/lib/store";
+import { NextRequest } from "next/server";
+import { proxy } from "@/lib/proxy";
+type Params = { id: string, threadId: string };
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string; threadId: string }> }
-) {
-  const { threadId } = await params;
-  
-  const thread = getDiscussionThread(threadId);
-  if (!thread) {
-    return NextResponse.json(
-      { success: false, error: "Thread not found" },
-      { status: 404 }
-    );
-  }
-  
-  const replies = listThreadReplies(threadId);
-  
-  return NextResponse.json({ 
-    success: true, 
-    data: { thread, replies } 
-  });
+export async function GET(req: NextRequest, { params }: { params: Promise<Params> }) {
+  const { id, threadId } = await params;
+  return proxy(req, `/events/${id}/discussions/${threadId}/`);
+}
+export async function POST(req: NextRequest, { params }: { params: Promise<Params> }) {
+  const { id, threadId } = await params;
+  return proxy(req, `/events/${id}/discussions/${threadId}/`);
+}
+export async function DELETE(req: NextRequest, { params }: { params: Promise<Params> }) {
+  const { id, threadId } = await params;
+  return proxy(req, `/events/${id}/discussions/${threadId}/`);
 }

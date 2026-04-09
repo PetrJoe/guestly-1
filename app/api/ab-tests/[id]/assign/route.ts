@@ -1,29 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { assignTestVariant } from '@/lib/marketing';
+import { NextRequest } from "next/server";
+import { proxy } from "@/lib/proxy";
+type Params = { id: string };
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const userId = req.cookies.get('user_id')?.value;
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const { id } = await params;
-    const variant = assignTestVariant(id, userId);
-
-    return NextResponse.json({ variant });
-  } catch (error) {
-    console.error('Error assigning test variant:', error);
-    return NextResponse.json(
-      { error: 'Failed to assign test variant' },
-      { status: 500 }
-    );
-  }
+export async function POST(req: NextRequest, { params }: { params: Promise<Params> }) {
+  const { id } = await params;
+  return proxy(req, `/ab-tests/${id}/assign/`);
 }

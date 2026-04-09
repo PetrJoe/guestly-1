@@ -1,24 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getUserOrders } from "@/lib/store";
+import { NextRequest } from "next/server";
+import { proxy } from "@/lib/proxy";
 
-function getUserIdFromCookies(req: NextRequest) {
-  return req.cookies.get("user_id")?.value || "attendee-user";
-}
-
-export async function GET(req: NextRequest) {
-  try {
-    const userId = getUserIdFromCookies(req);
-    const orders = getUserOrders(userId);
-    
-    return NextResponse.json({
-      success: true,
-      orders
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to fetch orders";
-    return NextResponse.json(
-      { success: false, error: message },
-      { status: 500 }
-    );
-  }
-}
+export async function GET(req: NextRequest) { return proxy(req, "/orders/user/"); }

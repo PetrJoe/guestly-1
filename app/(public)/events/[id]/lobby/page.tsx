@@ -13,13 +13,11 @@ export default function EventLobbyPage({ params }: { params: Promise<{ id: strin
     fetch(`/api/events/${id}`)
       .then(res => res.json())
       .then(data => {
-        setEvent(data.event);
+        // Backend returns event object directly (not wrapped in { event })
+        setEvent(data.id ? data : data.event ?? null);
         setLoading(false);
       })
-      .catch(err => {
-        console.error('Failed to fetch event:', err);
-        setLoading(false);
-      });
+      .catch(() => setLoading(false));
   }, [id]);
 
   if (loading) {

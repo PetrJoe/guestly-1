@@ -1,25 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getProductsByEvent, getAllActiveProducts, getProductById, getMerchStats } from "@/lib/store";
+import { NextRequest } from "next/server";
+import { proxy } from "@/lib/proxy";
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const eventId = searchParams.get("eventId");
-  const productId = searchParams.get("id");
-  const stats = searchParams.get("stats");
+  const res = await proxy(req, "/merch/products/");
+  const data = await res.json().catch(() => null);
+  if (!data) return res;
+  const list = Array.isArray(data) ? data : data.data ?? [];
+  // UI expects { products: [] }
+  return Response.json({ products: list, data: list });
+}
 
-  if (stats === "true") {
-    return NextResponse.json(getMerchStats());
-  }
-
-  if (productId) {
-    const product = getProductById(productId);
-    if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
-    return NextResponse.json({ product });
-  }
-
-  if (eventId) {
-    return NextResponse.json({ products: getProductsByEvent(eventId) });
-  }
-
-  return NextResponse.json({ products: getAllActiveProducts() });
+export async function POST(req: NextRequest) {
+  return proxy(req, "/merch/");
 }

@@ -1,11 +1,10 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import EventCard from "@/components/events/EventCard";
 import EmptyState from "@/components/ui/EmptyState";
 import Card from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
-import { filterEvents } from "@/lib/events";
 import { useRouter } from "next/navigation";
 
 const tabs = [
@@ -16,24 +15,27 @@ const tabs = [
 ] as const;
 
 type TabKey = (typeof tabs)[number]["key"];
+type Ev = { id: number; title: string; date: string; city: string; image: string; category: string };
 
 export default function AttendeePage() {
   const router = useRouter();
   const [tab, setTab] = React.useState<TabKey>("upcoming");
+  const [allEvents, setAllEvents] = useState<Ev[]>([]);
+  const [savedEvents, setSavedEvents] = useState<Ev[]>([]);
 
-  const allEvents = filterEvents({}).data;
-  const upcoming = allEvents.filter((e) => new Date(e.date) > new Date());
-  const past = allEvents.filter((e) => new Date(e.date) <= new Date());
-  const recommended = filterEvents({ category: "Tech" }).data;
-  const saved = filterEvents({ city: "Lagos" }).data.slice(0, 2);
+  useEffect(() => {
+    fetch("/api/events?pageSize=50")
+      .then(r => r.json()).then(d => setAllEvents(d.data ?? [])).catch(() => {});
+    fetch("/api/events/save/")
+      .then(r => r.json()).then(d => setSavedEvents(d.data ?? [])).catch(() => {});
+  }, []);
 
-  const sectionMap: Record<TabKey, typeof allEvents> = {
-    upcoming,
-    saved,
-    recommended,
-    past,
-  };
+  const now = new Date();
+  const upcoming = allEvents.filter(e => new Date(e.date) > now);
+  const past = allEvents.filter(e => new Date(e.date) <= now);
+  const recommended = allEvents.filter(e => e.category === "Tech").slice(0, 6);
 
+  const sectionMap: Record<TabKey, Ev[]> = { upcoming, saved: savedEvents, recommended, past };
   const events = sectionMap[tab];
 
   return (

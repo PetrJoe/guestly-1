@@ -1,40 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { upvoteQuestion, hasUserUpvoted } from "@/lib/store";
+import { NextRequest } from "next/server";
+import { proxy } from "@/lib/proxy";
+type Params = { id: string; questionId: string };
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string; questionId: string }> }
-) {
-  const { questionId } = await params;
-  const userId = req.cookies.get("user_id")?.value;
-
-  if (!userId) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-  }
-
-  try {
-    // Check if already upvoted
-    if (hasUserUpvoted(questionId, userId)) {
-      return NextResponse.json(
-        { success: false, error: "Already upvoted this question" },
-        { status: 400 }
-      );
-    }
-
-    const question = upvoteQuestion(questionId, userId);
-
-    if (!question) {
-      return NextResponse.json(
-        { success: false, error: "Question not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ success: true, data: question });
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, error: "Failed to upvote" },
-      { status: 500 }
-    );
-  }
+export async function POST(req: NextRequest, { params }: { params: Promise<Params> }) {
+  const { id, questionId } = await params;
+  // Map to PATCH with action=upvote
+  return proxy(req, `/events/${id}/qa/${questionId}/`, { method: "PATCH", body: { action: "upvote" } });
 }

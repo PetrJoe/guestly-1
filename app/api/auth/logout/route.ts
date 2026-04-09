@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { proxy } from "@/lib/proxy";
 
-export async function POST(_req: NextRequest) {
+export async function POST(req: NextRequest) {
+  await proxy(req, "/auth/logout/", { method: "POST" });
   const res = NextResponse.json({ ok: true });
-  res.cookies.set("access_token", "", { httpOnly: true, path: "/", maxAge: 0 });
-  res.cookies.set("refresh_token", "", { httpOnly: true, path: "/", maxAge: 0 });
-  res.cookies.set("role", "", { httpOnly: true, path: "/", maxAge: 0 });
-  res.cookies.set("user_id", "", { httpOnly: true, path: "/", maxAge: 0 });
+  for (const c of ["access_token", "refresh_token", "role", "user_id"]) {
+    res.cookies.set(c, "", { maxAge: 0, path: "/" });
+  }
   return res;
 }

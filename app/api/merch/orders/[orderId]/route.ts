@@ -1,37 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getMerchOrder } from "@/lib/store";
+import { NextRequest } from "next/server";
+import { proxy } from "@/lib/proxy";
+type Params = { orderId: string };
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ orderId: string }> }
-) {
-  try {
-    const { orderId } = await params;
-    
-    if (!orderId) {
-      return NextResponse.json(
-        { success: false, error: "Order ID required" },
-        { status: 400 }
-      );
-    }
-
-    const order = getMerchOrder(orderId);
-    
-    if (!order) {
-      return NextResponse.json(
-        { success: false, error: "Order not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      order,
-    });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error.message || "Failed to fetch order" },
-      { status: 500 }
-    );
-  }
+export async function GET(req: NextRequest, { params }: { params: Promise<Params> }) {
+  const { orderId } = await params;
+  return proxy(req, `/merch/orders/${orderId}/`);
+}
+export async function PATCH(req: NextRequest, { params }: { params: Promise<Params> }) {
+  const { orderId } = await params;
+  return proxy(req, `/merch/orders/${orderId}/`);
 }

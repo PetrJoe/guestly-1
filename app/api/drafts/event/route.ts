@@ -1,19 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getEventDraft, saveEventDraft } from "@/lib/store";
+import { NextRequest } from "next/server";
+import { proxy } from "@/lib/proxy";
 
-function userId(req: NextRequest) {
-  const role = req.cookies.get("role")?.value;
-  return role === "organiser" ? "organiser-user" : "attendee-user";
-}
-
-export async function GET(req: NextRequest) {
-  const draft = getEventDraft(userId(req));
-  return NextResponse.json({ ok: true, draft });
-}
-
-export async function PATCH(req: NextRequest) {
-  const body = await req.json().catch(() => ({}));
-  const updated = saveEventDraft(userId(req), body || {});
-  return NextResponse.json({ ok: true, draft: updated });
-}
-
+export async function GET(req: NextRequest) { return proxy(req, "/drafts/event/"); }
+export async function POST(req: NextRequest) { return proxy(req, "/drafts/event/"); }
+export async function DELETE(req: NextRequest) { return proxy(req, "/drafts/event/"); }

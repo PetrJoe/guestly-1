@@ -1,18 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
-import { filterEvents, Event } from "@/lib/events";
+import { NextRequest } from "next/server";
+import { proxy } from "@/lib/proxy";
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const q = searchParams.get("q") || undefined;
-  const category = (searchParams.get("category") || undefined) as Event["category"] | undefined;
-  const city = (searchParams.get("city") || undefined) as Event["city"] | undefined;
-  const community = searchParams.get("community") || undefined;
-  const communityType = (searchParams.get("communityType") || undefined) as Event["communityType"] | undefined;
-  const startDate = searchParams.get("startDate") || undefined;
-  const endDate = searchParams.get("endDate") || undefined;
-  const page = parseInt(searchParams.get("page") || "1", 10);
-  const pageSize = parseInt(searchParams.get("pageSize") || "6", 10);
-  const result = filterEvents({ q, category, city, community, communityType, startDate, endDate, page, pageSize });
-  return NextResponse.json({ ok: true, ...result });
+  const res = await proxy(req, "/events/");
+  const d = await res.json().catch(() => null);
+  if (!d) return res;
+  const pageSize = d.pageSize ?? 12;
+  const total = d.total ?? 0;
+  return Response.json({
+    ok: true,
+    data: d.data ?? [],
+    total,
+    page: d.page ?? 1,
+    pageSize,
+    pageCount: Math.ceil(total / pageSize),
+  });
 }
 
+export async function POST(req: NextRequest) {
+  return proxy(req, "/events/");
+}

@@ -1,39 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getVendorById, getVendorReviews } from "@/lib/store";
+import { NextRequest } from "next/server";
+import { proxy } from "@/lib/proxy";
+type Params = { vendorId: string };
 
-/**
- * GET /api/vendors/[vendorId]
- * Get vendor profile details with reviews
- */
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ vendorId: string }> }
-) {
-  try {
-    const { vendorId } = await params;
-    
-    const vendor = getVendorById(vendorId);
-    if (!vendor) {
-      return NextResponse.json(
-        { success: false, error: "Vendor not found" },
-        { status: 404 }
-      );
-    }
+export async function GET(req: NextRequest, { params }: { params: Promise<Params> }) {
+  const { vendorId } = await params;
+  const res = await proxy(req, `/vendors/${vendorId}/`);
+  const data = await res.json().catch(() => null);
+  if (!data || res.status !== 200) return res;
+  // Wrap in shape the UI expects: { success, data: { vendor, reviews } }
+  return Response.json({ success: true, data: { vendor: data, reviews: [] } });
+}
 
-    const reviews = getVendorReviews(vendorId);
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        vendor,
-        reviews,
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching vendor:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch vendor" },
-      { status: 500 }
-    );
-  }
+export async function PATCH(req: NextRequest, { params }: { params: Promise<Params> }) {
+  const { vendorId } = await params;
+  return proxy(req, `/vendors/${vendorId}/`);
 }
