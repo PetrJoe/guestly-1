@@ -1,4 +1,10 @@
 import { NextRequest } from "next/server";
 import { proxy } from "@/lib/proxy";
 
-export async function GET(req: NextRequest) { return proxy(req, "/wallet/transactions/"); }
+export async function GET(req: NextRequest) {
+  const res = await proxy(req, "/wallet/transactions/");
+  const data = await res.json().catch(() => null);
+  if (!data) return res;
+  const list = Array.isArray(data) ? data : data.data ?? [];
+  return Response.json({ transactions: list, data: list });
+}
