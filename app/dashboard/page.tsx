@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Icon from "@/components/ui/Icon";
 import { RevenueWidget } from "@/components/organiser/widgets/RevenueWidget";
+import { RealTimeFeed } from "@/components/organiser/widgets/RealTimeFeed";
 import { QuickActionCards } from "@/components/organiser/widgets/QuickActionCards";
 import { SettlementWidget } from "@/components/organiser/widgets/SettlementWidget";
 import { MerchandiseWidget } from "@/components/organiser/widgets/MerchandiseWidget";
