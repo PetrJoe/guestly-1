@@ -4,5 +4,9 @@ type Params = { id: string };
 
 export async function GET(req: NextRequest, { params }: { params: Promise<Params> }) {
   const { id } = await params;
-  return proxy(req, `/events/${id}/team/invitations/`);
+  const res = await proxy(req, `/events/${id}/team/invitations/`);
+  const data = await res.json().catch(() => null);
+  if (!data) return res;
+  const list = Array.isArray(data) ? data : data.data ?? [];
+  return Response.json({ success: true, data: list });
 }

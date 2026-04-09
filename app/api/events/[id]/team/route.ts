@@ -4,9 +4,16 @@ type Params = { id: string };
 
 export async function GET(req: NextRequest, { params }: { params: Promise<Params> }) {
   const { id } = await params;
-  return proxy(req, `/events/${id}/team/`);
+  const res = await proxy(req, `/events/${id}/team/`);
+  const data = await res.json().catch(() => null);
+  if (!data) return res;
+  const list = Array.isArray(data) ? data : data.data ?? [];
+  return Response.json({ success: true, data: list });
 }
+
 export async function POST(req: NextRequest, { params }: { params: Promise<Params> }) {
   const { id } = await params;
-  return proxy(req, `/events/${id}/team/`);
+  const res = await proxy(req, `/events/${id}/team/`);
+  const data = await res.json().catch(() => null);
+  return Response.json({ success: res.status < 300, data, error: data?.error });
 }
