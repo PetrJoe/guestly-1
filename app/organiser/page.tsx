@@ -50,7 +50,7 @@ export default function OrganiserLandingPage() {
               transition={{ delay: 0.3 }}
               className="flex flex-wrap items-center justify-center gap-6"
             >
-              <Button href="/register?role=organiser" size="xl" glow className="min-w-[200px]">
+              <Button href="/organiser-auth/register" size="xl" glow className="min-w-[200px]">
                 Create Your Event
               </Button>
               <Button href="/login" variant="outline" size="xl" className="min-w-[200px] border-[var(--surface-border)] bg-[var(--surface-card)] text-[var(--foreground)] hover:bg-[var(--surface-hover)] dark:bg-white/5 dark:hover:bg-white/10">
@@ -136,7 +136,7 @@ export default function OrganiserLandingPage() {
                 ))}
               </ul>
               <div className="pt-6">
-                <Button href="/register?role=organiser" size="xl" glow>
+                <Button href="/organiser-auth/register" size="xl" glow>
                   Get Started for Free
                 </Button>
               </div>

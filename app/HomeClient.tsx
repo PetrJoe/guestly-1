@@ -10,8 +10,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import HeroSection from "@/components/homepage/HeroSection";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
-import { filterEvents } from "@/lib/events";
-import type { Event } from "@/lib/events";
+
 
 const cities = [
   { name: "Lagos", icon: "location" as const, color: "from-primary-500 to-primary-700", desc: "Nigeria's cultural capital" },
@@ -19,6 +18,16 @@ const cities = [
   { name: "Accra", icon: "location" as const, color: "from-warning-500 to-orange-600", desc: "West Africa's creative city" },
   { name: "Nairobi", icon: "location" as const, color: "from-danger-500 to-danger-700", desc: "East Africa's tech hub" },
 ];
+
+type ApiEvent = {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  category: string;
+  city: string;
+  image: string;
+};
 
 const stats = [
   { value: "50K+", label: "Events Hosted" },
@@ -63,18 +72,44 @@ const staggerContainer = {
 } as const;
 
 export default function HomeClient() {
-  const [featured, setFeatured] = React.useState<Event[]>([]);
-  const [cityCards, setCityCards] = React.useState<Array<{ name: string; icon: any; color: string; desc: string; count: number }>>([]);
+  const [featured, setFeatured] = React.useState<ApiEvent[]>([]);
+  const [cityCards, setCityCards] = React.useState<Array<{ name: string; icon: "location"; color: string; desc: string; count: number }>>([]);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const featuredData = filterEvents({ page: 1, pageSize: 6 }).data;
-    const cityCardsData = cities.map((c) => ({
-      ...c,
-      count: filterEvents({ city: c.name as Event["city"] }).total,
-    }));
+    async function loadData() {
+      try {
+        const [featuredRes, LagosRes, AbujaRes, AccraRes, NairobiRes] = await Promise.all([
+          fetch("/api/events?pageSize=6"),
+          fetch("/api/events?city=Lagos&pageSize=1"),
+          fetch("/api/events?city=Abuja&pageSize=1"),
+          fetch("/api/events?city=Accra&pageSize=1"),
+          fetch("/api/events?city=Nairobi&pageSize=1"),
+        ]);
+        
+        const [featuredData, LagosData, AbujaData, AccraData, NairobiData] = await Promise.all([
+          featuredRes.json(),
+          LagosRes.json(),
+          AbujaRes.json(),
+          AccraRes.json(),
+          NairobiRes.json(),
+        ]);
+        
+        setFeatured((featuredData.data || []).slice(0, 6));
+        setCityCards([
+          { ...cities[0], count: LagosData.total || 0 },
+          { ...cities[1], count: AbujaData.total || 0 },
+          { ...cities[2], count: AccraData.total || 0 },
+          { ...cities[3], count: NairobiData.total || 0 },
+        ]);
+      } catch (error) {
+        console.error("Error loading homepage data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
     
-    setFeatured(featuredData);
-    setCityCards(cityCardsData);
+    loadData();
   }, []);
 
   return (

@@ -3,12 +3,24 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import EventCard from "@/components/events/EventCard";
-import type { Event } from "@/lib/events";
+
+type ApiEvent = {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  category: string;
+  city: string;
+  image: string;
+  eventType?: string;
+  community?: string;
+  communityType?: string;
+};
 
 export default function CommunityPage() {
   const params = useParams();
   const community = decodeURIComponent(params.community as string);
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<ApiEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
